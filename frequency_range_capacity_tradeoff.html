@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Frekans-Menzil-Kapasite Trade-off ve HetNet Katmanları</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 2.3em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .subtitle {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .panel {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        .panel-title {
+            font-size: 1.4em;
+            font-weight: bold;
+            color: #1e3c72;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #667eea;
+        }
+
+        .hetnet-panel {
+            grid-column: 1 / -1;
+        }
+
+        svg {
+            width: 100%;
+            height: auto;
+        }
+
+        .bubble {
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .bubble:hover {
+            opacity: 0.8;
+            filter: brightness(1.1);
+        }
+
+        .capacity-bar {
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .capacity-bar:hover {
+            opacity: 0.8;
+        }
+
+        .tooltip {
+            position: absolute;
+            background: rgba(0, 0, 0, 0.95);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 10px;
+            font-size: 0.95em;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: 1000;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.4);
+            max-width: 350px;
+        }
+
+        .tooltip.show {
+            opacity: 1;
+        }
+
+        .tooltip-title {
+            font-size: 1.1em;
+            font-weight: bold;
+            margin-bottom: 8px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+            padding-bottom: 5px;
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .comparison-table thead {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .comparison-table th {
+            padding: 15px 10px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 1em;
+        }
+
+        .comparison-table td {
+            padding: 12px 10px;
+            text-align: center;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .comparison-table tbody tr:hover {
+            background: #f5f7fa;
+        }
+
+        .param-label {
+            font-weight: bold;
+            text-align: left !important;
+            color: #333;
+        }
+
+        .freq-700 {
+            color: #1e40af;
+            font-weight: bold;
+        }
+
+        .freq-3500 {
+            color: #059669;
+            font-weight: bold;
+        }
+
+        .freq-28000 {
+            color: #dc2626;
+            font-weight: bold;
+        }
+
+        .info-box {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            border-left: 5px solid #667eea;
+            padding: 20px;
+            margin-top: 30px;
+            border-radius: 10px;
+        }
+
+        .info-title {
+            font-weight: bold;
+            color: #1e3c72;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+
+        .info-text {
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 25px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .legend-circle {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 2px solid #333;
+        }
+
+        footer {
+            background: #f8f9fa;
+            padding: 20px;
+            text-align: center;
+            color: #666;
+            font-size: 0.9em;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        @media (max-width: 1200px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+
+            h1 {
+                font-size: 1.8em;
+            }
+        }
+
+        .layer {
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .layer:hover {
+            opacity: 0.8;
+            transform: translateY(-2px);
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.6;
+            }
+        }
+
+        .pulse-animation {
+            animation: pulse 2s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Frekans-Menzil-Kapasite Trade-off ve HetNet Katmanları</h1>
+            <p class="subtitle">5G Heterogeneous Network (HetNet) Mimarisi - Çok Katmanlı Spektrum Kullanımı</p>
+        </header>
+
+        <div class="content">
+            <div class="main-grid">
+                <!-- Tradeoff Visualization -->
+                <div class="panel">
+                    <div class="panel-title">Frekans-Menzil-Kapasite İlişkisi</div>
+                    <svg id="tradeoff-chart" viewBox="0 0 800 600"></svg>
+                    <div class="legend">
+                        <div class="legend-item">
+                            <div class="legend-circle" style="background: #1e40af;"></div>
+                            <span>700 MHz (Geniş Kapsama)</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-circle" style="background: #059669;"></div>
+                            <span>3.5 GHz (Dengeli)</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-circle" style="background: #dc2626;"></div>
+                            <span>28 GHz (Yüksek Kapasite)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Comparison Table -->
+                <div class="panel">
+                    <div class="panel-title">Teknik Karşılaştırma</div>
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>Parametre</th>
+                                <th class="freq-700">700 MHz</th>
+                                <th class="freq-3500">3.5 GHz</th>
+                                <th class="freq-28000">28 GHz</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="param-label">Menzil</td>
+                                <td class="freq-700">5 km</td>
+                                <td class="freq-3500">1 km</td>
+                                <td class="freq-28000">150 m</td>
+                            </tr>
+                            <tr>
+                                <td class="param-label">Hücre/km²</td>
+                                <td class="freq-700">1</td>
+                                <td class="freq-3500">3-5</td>
+                                <td class="freq-28000">50-100</td>
+                            </tr>
+                            <tr>
+                                <td class="param-label">Peak Kapasite</td>
+                                <td class="freq-700">50 Mbps</td>
+                                <td class="freq-3500">500 Mbps</td>
+                                <td class="freq-28000">5 Gbps</td>
+                            </tr>
+                            <tr>
+                                <td class="param-label">Tipik Hız</td>
+                                <td class="freq-700">20 Mbps</td>
+                                <td class="freq-3500">200 Mbps</td>
+                                <td class="freq-28000">1 Gbps</td>
+                            </tr>
+                            <tr>
+                                <td class="param-label">Kullanım</td>
+                                <td class="freq-700">Kırsal</td>
+                                <td class="freq-3500">Kentsel</td>
+                                <td class="freq-28000">Hotspot</td>
+                            </tr>
+                            <tr>
+                                <td class="param-label">Hücre Tipi</td>
+                                <td class="freq-700">Makro</td>
+                                <td class="freq-3500">Makro</td>
+                                <td class="freq-28000">Small/Pico</td>
+                            </tr>
+                            <tr>
+                                <td class="param-label">Bina Penetrasyonu</td>
+                                <td class="freq-700">Mükemmel</td>
+                                <td class="freq-3500">İyi</td>
+                                <td class="freq-28000">Zayıf</td>
+                            </tr>
+                            <tr>
+                                <td class="param-label">CAPEX/Hücre</td>
+                                <td class="freq-700">Yüksek</td>
+                                <td class="freq-3500">Orta</td>
+                                <td class="freq-28000">Düşük</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- HetNet Layers -->
+                <div class="panel hetnet-panel">
+                    <div class="panel-title">HetNet Çok Katmanlı Mimari (1 km² Alan)</div>
+                    <svg id="hetnet-pyramid" viewBox="0 0 1400 500"></svg>
+                </div>
+            </div>
+
+            <div class="info-box">
+                <div class="info-title">HetNet (Heterogeneous Network) Stratejisi</div>
+                <div class="info-text">
+                    5G ağları, farklı frekans bantlarını ve hücre tiplerini birleştirerek optimize edilmiş
+                    bir hizmet sunmaktadır. <strong>700 MHz</strong> makro hücreler sürekli kapsama sağlarken,
+                    <strong>3.5 GHz</strong> C-band kentsel alanlarda kapasite artırır. <strong>28 GHz</strong>
+                    mmWave small cell'ler ise stadyum, havaalanı gibi yoğun alanlarda çok yüksek hız sağlar.
+                    Bu katmanlı yaklaşım, spektrum verimliliğini maksimize eder ve kullanıcı deneyimini optimize eder.
+                </div>
+                <div class="info-text" style="margin-top: 10px;">
+                    <strong>Trade-off İlişkisi:</strong> Frekans arttıkça dalga boyu kısalır, bu da menzili azaltır
+                    ancak daha geniş bant genişliği kullanımına (daha yüksek kapasite) izin verir. Bu nedenle düşük
+                    frekanslar kapsama için, yüksek frekanslar ise kapasite için optimize edilir.
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <div><strong>5G NR HetNet Mimarisi ve Spektrum Stratejisi</strong></div>
+            <div style="margin-top: 10px;">
+                Referanslar: 3GPP TR 38.913, ITU-R M.2410, 3GPP TS 38.300
+            </div>
+        </footer>
+    </div>
+
+    <div class="tooltip" id="tooltip"></div>
+
+    <script>
+        const tooltip = document.getElementById('tooltip');
+
+        // Band configurations
+        const bands = [
+            {
+                name: '700 MHz',
+                freq: 700,
+                range: 5000, // meters
+                capacity: 50, // Mbps
+                typicalSpeed: 20,
+                color: '#1e40af',
+                label: 'Geniş Kapsama',
+                x: 150,
+                y: 150,
+                cellsPerKm2: 1,
+                users: 500,
+                usage: 'Kırsal alanlar, sürekli kapsama'
+            },
+            {
+                name: '3.5 GHz',
+                freq: 3500,
+                range: 1000,
+                capacity: 500,
+                typicalSpeed: 200,
+                color: '#059669',
+                label: 'Dengeli',
+                x: 400,
+                y: 300,
+                cellsPerKm2: 4,
+                users: 200,
+                usage: 'Kentsel alanlar, kapasite katmanı'
+            },
+            {
+                name: '28 GHz',
+                freq: 28000,
+                range: 150,
+                capacity: 5000,
+                typicalSpeed: 1000,
+                color: '#dc2626',
+                label: 'Yüksek Kapasite',
+                x: 650,
+                y: 450,
+                cellsPerKm2: 75,
+                users: 50,
+                usage: 'Hotspot alanlar, maksimum hız'
+            }
+        ];
+
+        // Draw tradeoff chart
+        function drawTradeoffChart() {
+            const svg = document.getElementById('tradeoff-chart');
+            const svgNS = "http://www.w3.org/2000/svg";
+
+            // Title
+            const title = document.createElementNS(svgNS, 'text');
+            title.setAttribute('x', 400);
+            title.setAttribute('y', 30);
+            title.setAttribute('text-anchor', 'middle');
+            title.setAttribute('font-size', '18');
+            title.setAttribute('font-weight', 'bold');
+            title.setAttribute('fill', '#333');
+            title.textContent = 'Menzil vs Kapasite İlişkisi';
+            svg.appendChild(title);
+
+            // Scale factor for visualization
+            const rangeScale = 0.05; // pixels per meter
+            const capacityScale = 0.04; // pixels per Mbps
+
+            bands.forEach((band, index) => {
+                const group = document.createElementNS(svgNS, 'g');
+                group.setAttribute('class', 'bubble');
+
+                // Coverage circle (range indicator)
+                const rangeRadius = band.range * rangeScale;
+                const coverageCircle = document.createElementNS(svgNS, 'circle');
+                coverageCircle.setAttribute('cx', band.x);
+                coverageCircle.setAttribute('cy', band.y);
+                coverageCircle.setAttribute('r', rangeRadius);
+                coverageCircle.setAttribute('fill', band.color);
+                coverageCircle.setAttribute('opacity', '0.2');
+                coverageCircle.setAttribute('stroke', band.color);
+                coverageCircle.setAttribute('stroke-width', '3');
+                coverageCircle.setAttribute('class', 'pulse-animation');
+                coverageCircle.setAttribute('style', `animation-delay: ${index * 0.3}s;`);
+                group.appendChild(coverageCircle);
+
+                // Center point
+                const centerDot = document.createElementNS(svgNS, 'circle');
+                centerDot.setAttribute('cx', band.x);
+                centerDot.setAttribute('cy', band.y);
+                centerDot.setAttribute('r', '8');
+                centerDot.setAttribute('fill', band.color);
+                centerDot.setAttribute('stroke', 'white');
+                centerDot.setAttribute('stroke-width', '3');
+                group.appendChild(centerDot);
+
+                // Capacity bar (vertical)
+                const barHeight = band.capacity * capacityScale;
+                const barWidth = 40;
+                const barX = band.x - barWidth / 2;
+                const barY = band.y - barHeight;
+
+                const capacityBar = document.createElementNS(svgNS, 'rect');
+                capacityBar.setAttribute('x', barX);
+                capacityBar.setAttribute('y', barY);
+                capacityBar.setAttribute('width', barWidth);
+                capacityBar.setAttribute('height', barHeight);
+                capacityBar.setAttribute('fill', band.color);
+                capacityBar.setAttribute('opacity', '0.7');
+                capacityBar.setAttribute('rx', '5');
+                capacityBar.setAttribute('class', 'capacity-bar');
+                group.appendChild(capacityBar);
+
+                // Capacity value on bar
+                const capacityText = document.createElementNS(svgNS, 'text');
+                capacityText.setAttribute('x', band.x);
+                capacityText.setAttribute('y', barY - 10);
+                capacityText.setAttribute('text-anchor', 'middle');
+                capacityText.setAttribute('font-size', '14');
+                capacityText.setAttribute('font-weight', 'bold');
+                capacityText.setAttribute('fill', band.color);
+                capacityText.textContent = band.capacity >= 1000 ?
+                    (band.capacity / 1000) + ' Gbps' : band.capacity + ' Mbps';
+                group.appendChild(capacityText);
+
+                // Label below
+                const labelText = document.createElementNS(svgNS, 'text');
+                labelText.setAttribute('x', band.x);
+                labelText.setAttribute('y', band.y + rangeRadius + 25);
+                labelText.setAttribute('text-anchor', 'middle');
+                labelText.setAttribute('font-size', '16');
+                labelText.setAttribute('font-weight', 'bold');
+                labelText.setAttribute('fill', band.color);
+                labelText.textContent = band.name;
+                group.appendChild(labelText);
+
+                // Secondary label
+                const subLabel = document.createElementNS(svgNS, 'text');
+                subLabel.setAttribute('x', band.x);
+                subLabel.setAttribute('y', band.y + rangeRadius + 45);
+                subLabel.setAttribute('text-anchor', 'middle');
+                subLabel.setAttribute('font-size', '13');
+                subLabel.setAttribute('fill', '#666');
+                subLabel.textContent = band.label;
+                group.appendChild(subLabel);
+
+                // Range indicator text
+                const rangeText = document.createElementNS(svgNS, 'text');
+                rangeText.setAttribute('x', band.x);
+                rangeText.setAttribute('y', band.y + 5);
+                rangeText.setAttribute('text-anchor', 'middle');
+                rangeText.setAttribute('font-size', '12');
+                rangeText.setAttribute('font-weight', 'bold');
+                rangeText.setAttribute('fill', 'white');
+                rangeText.textContent = band.range >= 1000 ?
+                    (band.range / 1000) + ' km' : band.range + ' m';
+                group.appendChild(rangeText);
+
+                // Tooltip
+                group.addEventListener('mouseenter', (e) => {
+                    tooltip.innerHTML = `
+                        <div class="tooltip-title">${band.name} (${band.label})</div>
+                        <div style="margin: 8px 0;">
+                            <strong>Menzil:</strong> ${band.range >= 1000 ?
+                                (band.range / 1000) + ' km' : band.range + ' m'}<br>
+                            <strong>Peak Kapasite:</strong> ${band.capacity >= 1000 ?
+                                (band.capacity / 1000) + ' Gbps' : band.capacity + ' Mbps'}<br>
+                            <strong>Tipik Hız:</strong> ${band.typicalSpeed >= 1000 ?
+                                (band.typicalSpeed / 1000) + ' Gbps' : band.typicalSpeed + ' Mbps'}<br>
+                            <strong>Hücre/km²:</strong> ${band.cellsPerKm2}<br>
+                            <strong>Kullanıcı/Hücre:</strong> ~${band.users}<br>
+                            <strong>Kullanım:</strong> ${band.usage}
+                        </div>
+                    `;
+                    tooltip.classList.add('show');
+                });
+
+                group.addEventListener('mousemove', (e) => {
+                    tooltip.style.left = (e.pageX + 15) + 'px';
+                    tooltip.style.top = (e.pageY - 15) + 'px';
+                });
+
+                group.addEventListener('mouseleave', () => {
+                    tooltip.classList.remove('show');
+                });
+
+                svg.appendChild(group);
+            });
+
+            // Add arrows and annotations
+            // Arrow for "Artan Frekans" (increasing frequency)
+            const arrow1 = document.createElementNS(svgNS, 'defs');
+            arrow1.innerHTML = `
+                <marker id="arrowhead1" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+                    <polygon points="0 0, 10 3, 0 6" fill="#666" />
+                </marker>
+            `;
+            svg.appendChild(arrow1);
+
+            const freqArrowLine = document.createElementNS(svgNS, 'line');
+            freqArrowLine.setAttribute('x1', 100);
+            freqArrowLine.setAttribute('y1', 580);
+            freqArrowLine.setAttribute('x2', 350);
+            freqArrowLine.setAttribute('y2', 580);
+            freqArrowLine.setAttribute('stroke', '#666');
+            freqArrowLine.setAttribute('stroke-width', '2');
+            freqArrowLine.setAttribute('marker-end', 'url(#arrowhead1)');
+            svg.appendChild(freqArrowLine);
+
+            const freqArrowText = document.createElementNS(svgNS, 'text');
+            freqArrowText.setAttribute('x', 225);
+            freqArrowText.setAttribute('y', 570);
+            freqArrowText.setAttribute('text-anchor', 'middle');
+            freqArrowText.setAttribute('font-size', '12');
+            freqArrowText.setAttribute('fill', '#666');
+            freqArrowText.textContent = 'Artan Frekans →';
+            svg.appendChild(freqArrowText);
+
+            // Annotations
+            const note1 = document.createElementNS(svgNS, 'text');
+            note1.setAttribute('x', 450);
+            note1.setAttribute('y', 560);
+            note1.setAttribute('text-anchor', 'start');
+            note1.setAttribute('font-size', '11');
+            note1.setAttribute('fill', '#999');
+            note1.textContent = '※ Daire büyüklüğü: Kapsama menzili';
+            svg.appendChild(note1);
+
+            const note2 = document.createElementNS(svgNS, 'text');
+            note2.setAttribute('x', 450);
+            note2.setAttribute('y', 580);
+            note2.setAttribute('text-anchor', 'start');
+            note2.setAttribute('font-size', '11');
+            note2.setAttribute('fill', '#999');
+            note2.textContent = '※ Bar yüksekliği: Kapasite (Mbps/Gbps)';
+            svg.appendChild(note2);
+        }
+
+        // Draw HetNet pyramid
+        function drawHetNetPyramid() {
+            const svg = document.getElementById('hetnet-pyramid');
+            const svgNS = "http://www.w3.org/2000/svg";
+
+            const layers = [
+                {
+                    name: '700 MHz - Kapsama Katmanı (Coverage Layer)',
+                    color: '#1e40af',
+                    width: 800,
+                    y: 350,
+                    cells: '1 makro hücre',
+                    users: '~500 kullanıcı',
+                    speed: '20 Mbps tipik hız',
+                    description: 'Sürekli kapsama sağlar - Kırsal ve kentsel alanların temeli'
+                },
+                {
+                    name: '3.5 GHz - Kapasite Katmanı (Capacity Layer)',
+                    color: '#059669',
+                    width: 550,
+                    y: 230,
+                    cells: '3-5 makro hücre',
+                    users: '~200 kullanıcı/hücre',
+                    speed: '200 Mbps tipik hız',
+                    description: 'Kentsel alanlarda kapasite artırır - Ana 5G bandı'
+                },
+                {
+                    name: '28 GHz - Kapasite Artırım Katmanı (Hotspot Layer)',
+                    color: '#dc2626',
+                    width: 300,
+                    y: 110,
+                    cells: '50-100 small cell',
+                    users: '~50 kullanıcı/hücre',
+                    speed: '1+ Gbps tipik hız',
+                    description: 'Yüksek yoğunluk alanları - Stadyum, havaalanı, alışveriş merkezi'
+                }
+            ];
+
+            const centerX = 700;
+            const layerHeight = 100;
+
+            layers.forEach((layer, index) => {
+                const group = document.createElementNS(svgNS, 'g');
+                group.setAttribute('class', 'layer');
+
+                // Layer rectangle
+                const rect = document.createElementNS(svgNS, 'rect');
+                rect.setAttribute('x', centerX - layer.width / 2);
+                rect.setAttribute('y', layer.y);
+                rect.setAttribute('width', layer.width);
+                rect.setAttribute('height', layerHeight);
+                rect.setAttribute('fill', layer.color);
+                rect.setAttribute('opacity', '0.7');
+                rect.setAttribute('rx', '10');
+                rect.setAttribute('stroke', layer.color);
+                rect.setAttribute('stroke-width', '3');
+                group.appendChild(rect);
+
+                // Layer name
+                const nameText = document.createElementNS(svgNS, 'text');
+                nameText.setAttribute('x', centerX);
+                nameText.setAttribute('y', layer.y + 25);
+                nameText.setAttribute('text-anchor', 'middle');
+                nameText.setAttribute('font-size', '16');
+                nameText.setAttribute('font-weight', 'bold');
+                nameText.setAttribute('fill', 'white');
+                nameText.textContent = layer.name;
+                group.appendChild(nameText);
+
+                // Info line 1
+                const info1 = document.createElementNS(svgNS, 'text');
+                info1.setAttribute('x', centerX);
+                info1.setAttribute('y', layer.y + 47);
+                info1.setAttribute('text-anchor', 'middle');
+                info1.setAttribute('font-size', '13');
+                info1.setAttribute('fill', 'white');
+                info1.textContent = `${layer.cells} | ${layer.users}`;
+                group.appendChild(info1);
+
+                // Info line 2
+                const info2 = document.createElementNS(svgNS, 'text');
+                info2.setAttribute('x', centerX);
+                info2.setAttribute('y', layer.y + 65);
+                info2.setAttribute('text-anchor', 'middle');
+                info2.setAttribute('font-size', '13');
+                info2.setAttribute('fill', 'white');
+                info2.textContent = layer.speed;
+                group.appendChild(info2);
+
+                // Icons
+                const iconSize = 30;
+                const iconY = layer.y + layerHeight / 2 - iconSize / 2;
+
+                // Cell tower icon (left)
+                const towerIcon = document.createElementNS(svgNS, 'g');
+                const towerX = centerX - layer.width / 2 + 30;
+
+                // Tower shape
+                const towerRect = document.createElementNS(svgNS, 'rect');
+                towerRect.setAttribute('x', towerX - 5);
+                towerRect.setAttribute('y', iconY + 10);
+                towerRect.setAttribute('width', '10');
+                towerRect.setAttribute('height', '20');
+                towerRect.setAttribute('fill', 'white');
+                towerIcon.appendChild(towerRect);
+
+                const towerTop = document.createElementNS(svgNS, 'polygon');
+                towerTop.setAttribute('points', `${towerX},${iconY} ${towerX-8},${iconY+10} ${towerX+8},${iconY+10}`);
+                towerTop.setAttribute('fill', 'white');
+                towerIcon.appendChild(towerTop);
+
+                group.appendChild(towerIcon);
+
+                // User icon (right)
+                const userIcon = document.createElementNS(svgNS, 'g');
+                const userX = centerX + layer.width / 2 - 30;
+
+                // Head
+                const userHead = document.createElementNS(svgNS, 'circle');
+                userHead.setAttribute('cx', userX);
+                userHead.setAttribute('cy', iconY + 8);
+                userHead.setAttribute('r', '6');
+                userHead.setAttribute('fill', 'white');
+                userIcon.appendChild(userHead);
+
+                // Body
+                const userBody = document.createElementNS(svgNS, 'path');
+                userBody.setAttribute('d', `M ${userX} ${iconY+14} L ${userX-8} ${iconY+26} M ${userX} ${iconY+14} L ${userX+8} ${iconY+26} M ${userX} ${iconY+14} L ${userX} ${iconY+22}`);
+                userBody.setAttribute('stroke', 'white');
+                userBody.setAttribute('stroke-width', '3');
+                userBody.setAttribute('fill', 'none');
+                userIcon.appendChild(userBody);
+
+                group.appendChild(userIcon);
+
+                // Tooltip
+                group.addEventListener('mouseenter', (e) => {
+                    tooltip.innerHTML = `
+                        <div class="tooltip-title">${layer.name}</div>
+                        <div style="margin: 8px 0;">
+                            <strong>Hücre Yoğunluğu:</strong> ${layer.cells}<br>
+                            <strong>Kullanıcı Kapasitesi:</strong> ${layer.users}<br>
+                            <strong>Tipik Hız:</strong> ${layer.speed}<br>
+                            <strong>Kullanım:</strong> ${layer.description}
+                        </div>
+                    `;
+                    tooltip.classList.add('show');
+                });
+
+                group.addEventListener('mousemove', (e) => {
+                    tooltip.style.left = (e.pageX + 15) + 'px';
+                    tooltip.style.top = (e.pageY - 15) + 'px';
+                });
+
+                group.addEventListener('mouseleave', () => {
+                    tooltip.classList.remove('show');
+                });
+
+                svg.appendChild(group);
+            });
+
+            // Add connecting lines
+            for (let i = 0; i < layers.length - 1; i++) {
+                const currentLayer = layers[i];
+                const nextLayer = layers[i + 1];
+
+                // Left line
+                const leftLine = document.createElementNS(svgNS, 'line');
+                leftLine.setAttribute('x1', centerX - currentLayer.width / 2);
+                leftLine.setAttribute('y1', currentLayer.y);
+                leftLine.setAttribute('x2', centerX - nextLayer.width / 2);
+                leftLine.setAttribute('y2', nextLayer.y + layerHeight);
+                leftLine.setAttribute('stroke', '#999');
+                leftLine.setAttribute('stroke-width', '2');
+                leftLine.setAttribute('stroke-dasharray', '5,5');
+                svg.insertBefore(leftLine, svg.firstChild);
+
+                // Right line
+                const rightLine = document.createElementNS(svgNS, 'line');
+                rightLine.setAttribute('x1', centerX + currentLayer.width / 2);
+                rightLine.setAttribute('y1', currentLayer.y);
+                rightLine.setAttribute('x2', centerX + nextLayer.width / 2);
+                rightLine.setAttribute('y2', nextLayer.y + layerHeight);
+                rightLine.setAttribute('stroke', '#999');
+                rightLine.setAttribute('stroke-width', '2');
+                rightLine.setAttribute('stroke-dasharray', '5,5');
+                svg.insertBefore(rightLine, svg.firstChild);
+            }
+
+            // Title above pyramid
+            const title = document.createElementNS(svgNS, 'text');
+            title.setAttribute('x', 700);
+            title.setAttribute('y', 40);
+            title.setAttribute('text-anchor', 'middle');
+            title.setAttribute('font-size', '16');
+            title.setAttribute('font-weight', 'bold');
+            title.setAttribute('fill', '#333');
+            title.textContent = '↑ Artan Frekans | Azalan Kapsama | Artan Kapasite ↑';
+            svg.appendChild(title);
+
+            // Note at bottom
+            const note = document.createElementNS(svgNS, 'text');
+            note.setAttribute('x', 700);
+            note.setAttribute('y', 480);
+            note.setAttribute('text-anchor', 'middle');
+            note.setAttribute('font-size', '13');
+            note.setAttribute('fill', '#666');
+            note.textContent = '1 km² referans alan için gösterim';
+            svg.appendChild(note);
+        }
+
+        // Initialize
+        window.addEventListener('load', () => {
+            drawTradeoffChart();
+            drawHetNetPyramid();
+        });
+    </script>
+</body>
+</html>
