@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>mmWave Teknolojisi Uygulama Senaryoları</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .subtitle {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 50px 40px;
+            position: relative;
+        }
+
+        .scenarios-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            position: relative;
+        }
+
+        .scenario-card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+            transition: all 0.4s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .scenario-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 8px;
+            background: var(--card-color);
+        }
+
+        .scenario-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.2);
+        }
+
+        .scenario-card.stadium { --card-color: #f97316; }
+        .scenario-card.fwa { --card-color: #10b981; }
+        .scenario-card.industrial { --card-color: #3b82f6; }
+        .scenario-card.backhaul { --card-color: #8b5cf6; }
+
+        .card-header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .card-icon {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 15px;
+        }
+
+        .card-title {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: var(--card-color);
+            margin-bottom: 8px;
+        }
+
+        .card-subtitle {
+            font-size: 1.1em;
+            color: #666;
+            font-style: italic;
+        }
+
+        .metrics-section {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .metric-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .metric-item:last-child {
+            border-bottom: none;
+        }
+
+        .metric-label {
+            font-weight: 600;
+            color: #555;
+        }
+
+        .metric-value {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: var(--card-color);
+        }
+
+        .advantages-section {
+            margin: 20px 0;
+        }
+
+        .advantage-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 0;
+            color: #333;
+        }
+
+        .check-icon {
+            color: var(--card-color);
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+
+        .requirements-section {
+            background: #fef3c7;
+            border-left: 4px solid #f59e0b;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 15px;
+        }
+
+        .requirements-title {
+            font-weight: bold;
+            color: #92400e;
+            margin-bottom: 8px;
+        }
+
+        .requirements-text {
+            font-size: 0.9em;
+            color: #78350f;
+            line-height: 1.5;
+        }
+
+        .center-logo {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 200px;
+            height: 200px;
+            background: linear-gradient(135deg, #f97316 0%, #ef4444 100%);
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            z-index: 10;
+            border: 8px solid white;
+        }
+
+        .center-logo-text {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: white;
+            text-align: center;
+            line-height: 1.2;
+        }
+
+        .center-logo-subtext {
+            font-size: 0.9em;
+            color: rgba(255, 255, 255, 0.9);
+            margin-top: 5px;
+        }
+
+        .connection-line {
+            position: absolute;
+            stroke: #ccc;
+            stroke-width: 3;
+            stroke-dasharray: 10, 5;
+            fill: none;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        .tooltip {
+            position: absolute;
+            background: rgba(0, 0, 0, 0.95);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 10px;
+            font-size: 0.95em;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: 1000;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.4);
+            max-width: 350px;
+        }
+
+        .tooltip.show {
+            opacity: 1;
+        }
+
+        .comparison-box {
+            background: #e0f2fe;
+            border-radius: 8px;
+            padding: 12px;
+            margin: 10px 0;
+        }
+
+        .comparison-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+            font-size: 0.95em;
+        }
+
+        footer {
+            background: #f8f9fa;
+            padding: 20px;
+            text-align: center;
+            color: #666;
+            font-size: 0.9em;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        @media (max-width: 1200px) {
+            .scenarios-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .center-logo {
+                position: relative;
+                top: auto;
+                left: auto;
+                transform: none;
+                margin: 30px auto;
+            }
+
+            .connection-line {
+                display: none;
+            }
+
+            h1 {
+                font-size: 2em;
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            50% {
+                transform: scale(1.05);
+                opacity: 0.8;
+            }
+        }
+
+        .center-logo:hover {
+            animation: pulse 2s infinite;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.85em;
+            font-weight: bold;
+            margin: 3px;
+        }
+
+        .badge-high {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .badge-medium {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .badge-critical {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>mmWave Teknolojisi Uygulama Senaryoları</h1>
+            <p class="subtitle">5G NR FR2 (24-86 GHz) - Dört Ana Kullanım Alanı</p>
+        </header>
+
+        <div class="content">
+            <svg style="position: absolute; width: 100%; height: 100%; top: 0; left: 0; pointer-events: none;">
+                <line class="connection-line" x1="25%" y1="30%" x2="50%" y2="50%" />
+                <line class="connection-line" x1="75%" y1="30%" x2="50%" y2="50%" />
+                <line class="connection-line" x1="25%" y1="70%" x2="50%" y2="50%" />
+                <line class="connection-line" x1="75%" y1="70%" x2="50%" y2="50%" />
+            </svg>
+
+            <div class="scenarios-grid">
+                <!-- Senaryo 1: Stadyum/Hotspot -->
+                <div class="scenario-card stadium" data-scenario="stadium">
+                    <div class="card-header">
+                        <svg class="card-icon" viewBox="0 0 200 200">
+                            <!-- Stadium icon -->
+                            <ellipse cx="100" cy="150" rx="80" ry="30" fill="#f97316" opacity="0.2"/>
+                            <rect x="40" y="60" width="120" height="90" rx="10" fill="#f97316" opacity="0.3"/>
+                            <path d="M 30 60 Q 30 40, 50 40 L 150 40 Q 170 40, 170 60" fill="none" stroke="#f97316" stroke-width="4"/>
+                            <path d="M 30 150 Q 30 170, 50 170 L 150 170 Q 170 170, 170 150" fill="none" stroke="#f97316" stroke-width="4"/>
+                            <!-- Small cells -->
+                            <circle cx="60" cy="80" r="5" fill="#dc2626"/>
+                            <circle cx="100" cy="70" r="5" fill="#dc2626"/>
+                            <circle cx="140" cy="80" r="5" fill="#dc2626"/>
+                            <circle cx="60" cy="120" r="5" fill="#dc2626"/>
+                            <circle cx="100" cy="130" r="5" fill="#dc2626"/>
+                            <circle cx="140" cy="120" r="5" fill="#dc2626"/>
+                            <!-- People icons -->
+                            <g transform="translate(70, 100)">
+                                <circle cx="0" cy="0" r="3" fill="#fff"/>
+                                <circle cx="8" cy="0" r="3" fill="#fff"/>
+                                <circle cx="16" cy="0" r="3" fill="#fff"/>
+                            </g>
+                        </svg>
+                        <div class="card-title">Stadyum / Hotspot</div>
+                        <div class="card-subtitle">Yoğun Kullanıcı Alanları</div>
+                    </div>
+
+                    <div class="metrics-section">
+                        <div class="metric-item">
+                            <span class="metric-label">Kullanıcı Sayısı</span>
+                            <span class="metric-value">50,000+</span>
+                        </div>
+                        <div class="metric-item">
+                            <span class="metric-label">Small Cell Sayısı</span>
+                            <span class="metric-value">20-30</span>
+                        </div>
+                        <div class="metric-item">
+                            <span class="metric-label">Toplam Kapasite</span>
+                            <span class="metric-value">200-600 Gbps</span>
+                        </div>
+                        <div class="metric-item">
+                            <span class="metric-label">Kullanıcı Başı Hız</span>
+                            <span class="metric-value">10-15 Mbps</span>
+                        </div>
+                    </div>
+
+                    <div class="advantages-section">
+                        <div class="advantage-item">
+                            <span class="check-icon">✓</span>
+                            <span>Aşırı yüksek kullanıcı yoğunluğu desteği</span>
+                        </div>
+                        <div class="advantage-item">
+                            <span class="check-icon">✓</span>
+                            <span>Alan başına yüksek kapasite (Gbps/km²)</span>
+                        </div>
+                        <div class="advantage-item">
+                            <span class="check-icon">✓</span>
+                            <span>4K/8K video streaming, AR/VR deneyimleri</span>
+                        </div>
+                        <div class="advantage-item">
+                            <span class="check-icon">✓</span>
+                            <span>Etkinlik süresi gelir artırıcı hizmetler</span>
+                        </div>
+                    </div>
+
+                    <div class="requirements-section">
+                        <div class="requirements-title">⚙️ Teknik Gereksinimler</div>
+                        <div class="requirements-text">
+                            Dense small cell deployment, fiber/wireless backhaul,
+                            koordineli interferans yönetimi, dinamik spektrum paylaşımı
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Senaryo 2: FWA -->
+                <div class="scenario-card fwa" data-scenario="fwa">
+                    <div class="card-header">
+                        <svg class="card-icon" viewBox="0 0 200 200">
+                            <!-- Building -->
+                            <rect x="120" y="60" width="50" height="80" fill="#10b981" opacity="0.3"/>
+                            <rect x="125" y="70" width="10" height="10" fill="#065f46"/>
+                            <rect x="145" y="70" width="10" height="10" fill="#065f46"/>
+                            <rect x="125" y="90" width="10" height="10" fill="#065f46"/>
+                            <rect x="145" y="90" width="10" height="10" fill="#065f46"/>
+                            <rect x="125" y="110" width="10" height="10" fill="#065f46"/>
+                            <rect x="145" y="110" width="10" height="10" fill="#065f46"/>
+                            <!-- Base station -->
+                            <rect x="30" y="90" width="15" height="50" fill="#10b981"/>
+                            <polygon points="37.5,80 30,90 45,90" fill="#047857"/>
+                            <line x1="30" y1="85" x2="20" y2="80" stroke="#10b981" stroke-width="3"/>
+                            <line x1="45" y1="85" x2="55" y2="80" stroke="#10b981" stroke-width="3"/>
+                            <!-- LoS connection -->
+                            <path d="M 50 100 Q 85 90, 120 85" fill="none" stroke="#10b981" stroke-width="3" stroke-dasharray="5,5"/>
+                            <circle cx="50" cy="100" r="4" fill="#10b981"/>
+                            <circle cx="70" cy="95" r="3" fill="#10b981" opacity="0.6"/>
+                            <circle cx="90" cy="90" r="3" fill="#10b981" opacity="0.6"/>
+                            <circle cx="110" cy="87" r="3" fill="#10b981" opacity="0.6"/>
+                            <!-- CPE antenna -->
+                            <rect x="115" y="75" width="12" height="15" fill="#047857"/>
+                            <rect x="119" y="72" width="4" height="5" fill="#fbbf24"/>
+                        </svg>
+                        <div class="card-title">Sabit Kablosuz Erişim (FWA)</div>
+                        <div class="card-subtitle">Fiber Alternatifi</div>
+                    </div>
+
+                    <div class="metrics-section">
+                        <div class="metric-item">
+                            <span class="metric-label">Downlink Hızı</span>
+                            <span class="metric-value">1-2 Gbps</span>
+                        </div>
+                        <div class="metric-item">
+                            <span class="metric-label">Uplink Hızı</span>
+                            <span class="metric-value">200-500 Mbps</span>
+                        </div>
+                        <div class="metric-item">
+                            <span class="metric-label">Tipik Menzil (LoS)</span>
+                            <span class="metric-value">200-500 m</span>
+                        </div>
+                        <div class="metric-item">
+                            <span class="metric-label">Gecikme</span>
+                            <span class="metric-value">&lt;10 ms</span>
+                        </div>
+                    </div>
+
+                    <div class="comparison-box">
+                        <div style="font-weight: bold; margin-bottom: 8px; color: #0c4a6e;">
+                            💰 Maliyet Karşılaştırması:
+                        </div>
+                        <div class="comparison-item">
+                            <span>Fiber (FTTH):</span>
+                            <span style="font-weight: bold; color: #dc2626;">$1,000-3,000</span>
+                        </div>
+                        <div class="comparison-item">
+                            <span>mmWave FWA:</span>
+                            <span style="font-weight: bold; color: #10b981;">$200-500</span>
+                        </div>
+                        <div style="margin-top: 8px; font-size: 0.9em; color: #047857;">
+                            ✓ %80-90 maliyet tasarrufu
+                        </div>
+                    </div>
+
+                    <div class="advantages-section">
+                        <div class="advantage-item">
+                            <span class="check-icon">✓</span>
+                            <span>Hızlı deployment (günler vs. aylar)</span>
+                        </div>
+                        <div class="advantage-item">
+                            <span class="check-icon">✓</span>
+                            <span>Fiber benzeri hız ve gecikme</span>
+                        </div>
+                        <div class="advantage-item">
+                            <span class="check-icon">✓</span>
+                            <span>Kırsal alanlar için ideal çözüm</span>
+                        </div>
+                    </div>
+
+                    <div class="requirements-section">
+                        <div class="requirements-title">⚙️ Teknik Gereksinimler</div>
+                        <div class="requirements-text">
+                            Line-of-Sight (LoS) bağlantı, dış mekan CPE anteni,
+                            beam steering, atmosferik koşul adaptasyonu
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Senaryo 3: Endüstriyel -->
+                <div class="scenario-card industrial" data-scenario="industrial">
+                    <div class="card-header">
+                        <svg class="card-icon" viewBox="0 0 200 200">
+                            <!-- Factory building -->
+                            <rect x="40" y="80" width="120" height="70" fill="#3b82f6" opacity="0.3"/>
+                            <polygon points="40,80 100,40 160,80" fill="#3b82f6" opacity="0.4"/>
+                            <!-- Chimney -->
+                            <rect x="130" y="50" width="15" height="30" fill="#1e40af"/>
+                            <ellipse cx="137.5" cy="50" rx="7.5" ry="3" fill="#1e40af"/>
+                            <!-- Windows -->
+                            <rect x="55" y="95" width="15" height="15" fill="#1e3a8a"/>
+                            <rect x="85" y="95" width="15" height="15" fill="#1e3a8a"/>
+                            <rect x="115" y="95" width="15" height="15" fill="#1e3a8a"/>
+                            <!-- AGV Robot -->
+                            <rect x="60" y="125" width="25" height="15" rx="3" fill="#fbbf24"/>
+                            <circle cx="65" cy="143" r="4" fill="#374151"/>
+                            <circle cx="80" cy="143" r="4" fill="#374151"/>
+                            <rect x="70" y="120" width="10" height="5" fill="#f59e0b"/>
+                            <!-- AR Glasses -->
+                            <g transform="translate(120, 125)">
+                                <ellipse cx="0" cy="0" rx="8" ry="6" fill="none" stroke="#3b82f6" stroke-width="2"/>
+                                <ellipse cx="18" cy="0" rx="8" ry="6" fill="none" stroke="#3b82f6" stroke-width="2"/>
+                                <line x1="8" y1="0" x2="10" y2="0" stroke="#3b82f6" stroke-width="2"/>
+                            </g>
+                            <!-- 5G signal -->
+                            <path d="M 100 60 Q 90 70, 85 80" fill="none" stroke="#3b82f6" stroke-width="2"/>
+                            <path d="M 100 60 Q 110 70, 115 80" fill="none" stroke="#3b82f6" stroke-width="2"/>
+                        </svg>
+                        <div class="card-title">Endüstriyel / Özel Ağ</div>
+                        <div class="card-subtitle">Endüstri 4.0</div>
+                    </div>
+
+                    <div class="metrics-section">
+                        <div class="metric-item">
+                            <span class="metric-label">Gecikme (Latency)</span>
+                            <span class="metric-value">&lt;1 ms</span>
+                        </div>
+                        <div class="metric-item">
+                            <span class="metric-label">Güvenilirlik</span>
+                            <span class="metric-value">99.9999%</span>
+                        </div>
+                        <div class="metric-item">
+                            <span class="metric-label">Bağlantı Yoğunluğu</span>
+                            <span class="metric-value">1M/km²</span>
+                        </div>
+                        <div class="metric-item">
+                            <span class="metric-label">Hız</span>
+                            <span class="metric-value">100 Mbps - 10 Gbps</span>
+                        </div>
+                    </div>
+
+                    <div style="margin: 15px 0;">
+                        <span class="badge badge-critical">URLLC</span>
+                        <span class="badge badge-high">Ultra-Low Latency</span>
+                        <span class="badge badge-critical">Mission Critical</span>
+                        <span class="badge badge-medium">Private Spectrum</span>
+                    </div>
+
+                    <div class="advantages-section">
+                        <div class="advantage-item">
+                            <span class="check-icon">✓</span>
+                            <span>AGV/AMR robot koordinasyonu</span>
+                        </div>
+                        <div class="advantage-item">
+                            <span class="check-icon">✓</span>
+                            <span>AR/VR destekli bakım ve eğitim</span>
+                        </div>
+                        <div class="advantage-item">
+                            <span class="check-icon">✓</span>
+                            <span>Gerçek zamanlı makine kontrolü</span>
+                        </div>
+                        <div class="advantage-item">
+                            <span class="check-icon">✓</span>
+                            <span>Yerel veri işleme (MEC)</span>
+                        </div>
+                        <div class="advantage-item">
+                            <span class="check-icon">✓</span>
+                            <span>Özel spektrum lisansı (CBRS, 3.5 GHz)</span>
+                        </div>
+                    </div>
+
+                    <div class="requirements-section">
+                        <div class="requirements-title">⚙️ Teknik Gereksinimler</div>
+                        <div class="requirements-text">
+                            Private 5G core, edge computing, network slicing,
+                            TSN (Time-Sensitive Networking), yerel spektrum tahsisi
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Senaryo 4: Backhaul -->
+                <div class="scenario-card backhaul" data-scenario="backhaul">
+                    <div class="card-header">
+                        <svg class="card-icon" viewBox="0 0 200 200">
+                            <!-- Master base station (fiber connected) -->
+                            <rect x="30" y="80" width="20" height="60" fill="#10b981"/>
+                            <polygon points="40,70 30,80 50,80" fill="#047857"/>
+                            <line x1="30" y1="75" x2="20" y2="70" stroke="#10b981" stroke-width="3"/>
+                            <line x1="50" y1="75" x2="60" y2="70" stroke="#10b981" stroke-width="3"/>
+                            <!-- Fiber connection (green) -->
+                            <path d="M 40 140 L 40 170" stroke="#10b981" stroke-width="4"/>
+                            <circle cx="40" cy="170" r="5" fill="#10b981"/>
+                            <text x="10" y="165" font-size="10" fill="#10b981" font-weight="bold">Fiber</text>
+
+                            <!-- mmWave backhaul links -->
+                            <path d="M 55 90 L 110 75" stroke="#8b5cf6" stroke-width="3" stroke-dasharray="5,3"/>
+                            <path d="M 55 110 L 110 125" stroke="#8b5cf6" stroke-width="3" stroke-dasharray="5,3"/>
+
+                            <!-- Slave small cells (mmWave connected) -->
+                            <g transform="translate(110, 60)">
+                                <rect x="0" y="0" width="15" height="30" fill="#8b5cf6"/>
+                                <rect x="2" y="-3" width="11" height="5" fill="#7c3aed"/>
+                            </g>
+                            <g transform="translate(110, 110)">
+                                <rect x="0" y="0" width="15" height="30" fill="#8b5cf6"/>
+                                <rect x="2" y="-3" width="11" height="5" fill="#7c3aed"/>
+                            </g>
+
+                            <!-- Additional slave cells -->
+                            <path d="M 125 85 L 160 70" stroke="#8b5cf6" stroke-width="2" stroke-dasharray="3,2"/>
+                            <path d="M 125 125 L 160 140" stroke="#8b5cf6" stroke-width="2" stroke-dasharray="3,2"/>
+
+                            <g transform="translate(160, 55)">
+                                <rect x="0" y="0" width="12" height="25" fill="#a78bfa"/>
+                                <rect x="2" y="-3" width="8" height="4" fill="#8b5cf6"/>
+                            </g>
+                            <g transform="translate(160, 125)">
+                                <rect x="0" y="0" width="12" height="25" fill="#a78bfa"/>
+                                <rect x="2" y="-3" width="8" height="4" fill="#8b5cf6"/>
+                            </g>
+
+                            <!-- Labels -->
+                            <text x="35" y="50" font-size="9" fill="#047857" font-weight="bold">Master</text>
+                            <text x="105" y="50" font-size="8" fill="#7c3aed" font-weight="bold">Slave</text>
+                            <text x="155" y="50" font-size="8" fill="#7c3aed" font-weight="bold">Slave</text>
+                        </svg>
+                        <div class="card-title">Kablosuz Backhaul</div>
+                        <div class="card-subtitle">Small Cell Backhaul</div>
+                    </div>
+
+                    <div class="metrics-section">
+                        <div class="metric-item">
+                            <span class="metric-label">Backhaul Kapasitesi</span>
+                            <span class="metric-value">10-20 Gbps</span>
+                        </div>
+                        <div class="metric-item">
+                            <span class="metric-label">Menzil (LoS)</span>
+                            <span class="metric-value">200-500 m</span>
+                        </div>
+                        <div class="metric-item">
+                            <span class="metric-label">Gecikme</span>
+                            <span class="metric-value">&lt;1 ms</span>
+                        </div>
+                        <div class="metric-item">
+                            <span class="metric-label">Maliyet Tasarrufu</span>
+                            <span class="metric-value">%80-90</span>
+                        </div>
+                    </div>
+
+                    <div class="comparison-box">
+                        <div style="font-weight: bold; margin-bottom: 8px; color: #4c1d95;">
+                            🔗 Backhaul Mimari:
+                        </div>
+                        <div class="comparison-item">
+                            <span>Master (Fiber):</span>
+                            <span style="font-weight: bold; color: #10b981;">1 makro cell</span>
+                        </div>
+                        <div class="comparison-item">
+                            <span>Slave (mmWave):</span>
+                            <span style="font-weight: bold; color: #8b5cf6;">5-10 small cell</span>
+                        </div>
+                        <div style="margin-top: 8px; font-size: 0.9em; color: #6b21a8;">
+                            ✓ Fiber maliyeti 1/5-1/10'una iniyor
+                        </div>
+                    </div>
+
+                    <div class="advantages-section">
+                        <div class="advantage-item">
+                            <span class="check-icon">✓</span>
+                            <span>Hızlı small cell deployment</span>
+                        </div>
+                        <div class="advantage-item">
+                            <span class="check-icon">✓</span>
+                            <span>Kazma gerektirmeyen kurulum</span>
+                        </div>
+                        <div class="advantage-item">
+                            <span class="check-icon">✓</span>
+                            <span>Fiber olmayan bölgeler için çözüm</span>
+                        </div>
+                        <div class="advantage-item">
+                            <span class="check-icon">✓</span>
+                            <span>Multi-hop destek (3-4 seviye)</span>
+                        </div>
+                        <div class="advantage-item">
+                            <span class="check-icon">✓</span>
+                            <span>Self-organizing network (SON)</span>
+                        </div>
+                    </div>
+
+                    <div class="requirements-section">
+                        <div class="requirements-title">⚙️ Teknik Gereksinimler</div>
+                        <div class="requirements-text">
+                            LoS path planning, adaptive beamforming, quick link recovery,
+                            weather adaptation, synchronized timing (PTP/GPS)
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Center Logo -->
+            <div class="center-logo">
+                <div class="center-logo-text">mmWave<br>5G</div>
+                <div class="center-logo-subtext">24-86 GHz</div>
+            </div>
+        </div>
+
+        <footer>
+            <div><strong>mmWave 5G Teknolojisi - Ana Uygulama Senaryoları</strong></div>
+            <div style="margin-top: 10px;">
+                Referanslar: 3GPP TR 38.913, ITU-R M.2083, 5G Americas White Papers
+            </div>
+            <div style="margin-top: 5px; color: #999;">
+                eMBB (Enhanced Mobile Broadband), URLLC (Ultra-Reliable Low Latency), FWA (Fixed Wireless Access)
+            </div>
+        </footer>
+    </div>
+
+    <div class="tooltip" id="tooltip"></div>
+
+    <script>
+        const tooltip = document.getElementById('tooltip');
+        const cards = document.querySelectorAll('.scenario-card');
+
+        const scenarioDetails = {
+            stadium: {
+                title: 'Stadyum ve Yoğun Etkinlik Alanları',
+                details: `
+                    <strong>Tipik Deployment:</strong><br>
+                    • 20-30 mmWave small cell (28/39 GHz)<br>
+                    • Her hücre: 10-20 Gbps kapasite<br>
+                    • Toplam: 200-600 Gbps alan kapasitesi<br>
+                    • 50,000+ eşzamanlı kullanıcı<br><br>
+                    <strong>Gerçek Dünya Örnekleri:</strong><br>
+                    • AT&T: Mercedes-Benz Stadium (Atlanta)<br>
+                    • Verizon: SoFi Stadium (Los Angeles)<br>
+                    • T-Mobile: Allegiant Stadium (Las Vegas)<br><br>
+                    <strong>Kullanım Senaryoları:</strong><br>
+                    • 4K/8K canlı yayın<br>
+                    • Multi-angle video streaming<br>
+                    • AR spor istatistikleri<br>
+                    • Sosyal medya upload burst
+                `
+            },
+            fwa: {
+                title: 'Fixed Wireless Access (FWA)',
+                details: `
+                    <strong>Deployment Model:</strong><br>
+                    • Outdoor unit (ODU): Baz istasyonu<br>
+                    • Customer Premise Equipment (CPE): Dış mekan anteni<br>
+                    • LoS veya NLoS bağlantı<br>
+                    • Beam tracking ve steering<br><br>
+                    <strong>Global Deployment:</strong><br>
+                    • Verizon 5G Home: 50+ şehir (ABD)<br>
+                    • T-Mobile Home Internet: mmWave + mid-band<br>
+                    • Türkiye: Potansiyel kırsal alan çözümü<br><br>
+                    <strong>Ekonomik Avantaj:</strong><br>
+                    • FTTH: $1,000-3,000 fiber çekme maliyeti<br>
+                    • mmWave FWA: $200-500 kurulum<br>
+                    • ROI: 6-12 ay vs 5-7 yıl (fiber)
+                `
+            },
+            industrial: {
+                title: 'Endüstriyel Özel 5G Ağlar',
+                details: `
+                    <strong>Private 5G Spektrum:</strong><br>
+                    • CBRS (3.5 GHz): ABD için 150 MHz<br>
+                    • Local 5G: Almanya, Japonya lisans modeli<br>
+                    • mmWave: Yüksek kapasite indoor deployment<br><br>
+                    <strong>Endüstri 4.0 Kullanımlar:</strong><br>
+                    • AGV/AMR: <10 ms gecikme<br>
+                    • Robotik kontrol: <1 ms URLLC<br>
+                    • AR bakım: 50-100 Mbps/cihaz<br>
+                    • Makine vizyonu: 1-10 Gbps<br>
+                    • Dijital ikiz: Sürekli veri akışı<br><br>
+                    <strong>Deployment Örnekleri:</strong><br>
+                    • Mercedes-Benz: Factory 56 (Sindelfingen)<br>
+                    • Bosch: Almanya fabrikaları<br>
+                    • Ericsson: Smart Factory (ABD)
+                `
+            },
+            backhaul: {
+                title: 'mmWave Kablosuz Backhaul',
+                details: `
+                    <strong>Mimari:</strong><br>
+                    • Master node: Fiber bağlantılı makro cell<br>
+                    • Slave nodes: mmWave backhaul small cells<br>
+                    • Multi-hop: 3-4 seviye cascade<br>
+                    • Mesh topology: Redundancy<br><br>
+                    <strong>Teknik Parametreler:</strong><br>
+                    • Frekans: 28/39/60/70 GHz<br>
+                    • Kapasite: 10-20 Gbps/link<br>
+                    • Menzil: 200-500m (LoS)<br>
+                    • Gecikme: <1 ms (hop başı)<br><br>
+                    <strong>Kullanım Alanları:</strong><br>
+                    • Dense urban: Small cell densification<br>
+                    • Temporary events: Konser, festival<br>
+                    • Fiber olmayan bölgeler<br>
+                    • Rapid deployment scenarios
+                `
+            }
+        };
+
+        cards.forEach(card => {
+            card.addEventListener('mouseenter', (e) => {
+                const scenario = card.dataset.scenario;
+                const details = scenarioDetails[scenario];
+
+                tooltip.innerHTML = `
+                    <div style="font-size: 1.1em; font-weight: bold; margin-bottom: 10px;
+                                border-bottom: 1px solid rgba(255,255,255,0.3); padding-bottom: 8px;">
+                        ${details.title}
+                    </div>
+                    <div style="line-height: 1.6;">
+                        ${details.details}
+                    </div>
+                `;
+                tooltip.classList.add('show');
+            });
+
+            card.addEventListener('mousemove', (e) => {
+                tooltip.style.left = (e.pageX + 15) + 'px';
+                tooltip.style.top = (e.pageY - 15) + 'px';
+            });
+
+            card.addEventListener('mouseleave', () => {
+                tooltip.classList.remove('show');
+            });
+        });
+
+        // Center logo tooltip
+        const centerLogo = document.querySelector('.center-logo');
+        centerLogo.addEventListener('mouseenter', (e) => {
+            tooltip.innerHTML = `
+                <div style="font-size: 1.1em; font-weight: bold; margin-bottom: 10px;">
+                    mmWave 5G (FR2)
+                </div>
+                <div style="line-height: 1.6;">
+                    <strong>Frekans Bandı:</strong> 24.25 - 86 GHz<br>
+                    <strong>Dalga Boyu:</strong> 3.5 - 12.5 mm<br>
+                    <strong>Bant Genişliği:</strong> 400-800 MHz<br>
+                    <strong>Peak Hız:</strong> 10+ Gbps<br><br>
+                    <strong>Ana Özellikler:</strong><br>
+                    • Çok yüksek kapasite<br>
+                    • Dar kapsama (50-200m)<br>
+                    • Beamforming zorunlu<br>
+                    • LoS hassasiyeti yüksek
+                </div>
+            `;
+            tooltip.classList.add('show');
+        });
+
+        centerLogo.addEventListener('mousemove', (e) => {
+            tooltip.style.left = (e.pageX + 15) + 'px';
+            tooltip.style.top = (e.pageY - 15) + 'px';
+        });
+
+        centerLogo.addEventListener('mouseleave', () => {
+            tooltip.classList.remove('show');
+        });
+    </script>
+</body>
+</html>
