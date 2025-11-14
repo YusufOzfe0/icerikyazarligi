@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sub-6 GHz vs mmWave: Teknik Karşılaştırma</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .subtitle {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .comparison-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            padding: 40px;
+        }
+
+        .column {
+            position: relative;
+        }
+
+        .column-header {
+            text-align: center;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            color: white;
+            font-size: 1.8em;
+            font-weight: bold;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .sub6-header {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+        }
+
+        .mmwave-header {
+            background: linear-gradient(135deg, #f12711 0%, #f5af19 100%);
+        }
+
+        .visualization {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 30px;
+            margin-bottom: 25px;
+            min-height: 400px;
+            position: relative;
+            border: 2px solid #e0e0e0;
+        }
+
+        .specs-grid {
+            display: grid;
+            gap: 15px;
+        }
+
+        .spec-item {
+            background: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            border-left: 4px solid;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .spec-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .sub6-spec {
+            border-left-color: #2a5298;
+        }
+
+        .mmwave-spec {
+            border-left-color: #f5af19;
+        }
+
+        .spec-label {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+            font-size: 0.9em;
+        }
+
+        .spec-value {
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        .wave-path {
+            fill: none;
+            stroke-width: 3;
+            stroke-linecap: round;
+        }
+
+        .sub6-wave {
+            stroke: #2a5298;
+            opacity: 0.7;
+        }
+
+        .mmwave-wave {
+            stroke: #f5af19;
+            opacity: 0.7;
+        }
+
+        .coverage-circle {
+            fill-opacity: 0.1;
+            stroke-width: 2;
+            stroke-dasharray: 5, 5;
+        }
+
+        .sub6-coverage {
+            fill: #2a5298;
+            stroke: #2a5298;
+        }
+
+        .mmwave-coverage {
+            fill: #f5af19;
+            stroke: #f5af19;
+        }
+
+        .base-station {
+            transition: transform 0.3s ease;
+        }
+
+        .base-station:hover {
+            transform: scale(1.1);
+        }
+
+        .user-device {
+            transition: transform 0.3s ease;
+        }
+
+        .user-device:hover {
+            transform: scale(1.2);
+        }
+
+        footer {
+            background: #f8f9fa;
+            padding: 20px;
+            text-align: center;
+            color: #666;
+            font-size: 0.9em;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .reference {
+            margin-top: 10px;
+            font-style: italic;
+        }
+
+        @media (max-width: 1024px) {
+            .comparison-container {
+                grid-template-columns: 1fr;
+                gap: 40px;
+            }
+
+            h1 {
+                font-size: 2em;
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 0.3;
+            }
+            50% {
+                opacity: 0.7;
+            }
+        }
+
+        .signal-pulse {
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            margin: 0 40px 20px 40px;
+            border-radius: 10px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .legend-icon {
+            width: 30px;
+            height: 30px;
+            border-radius: 5px;
+        }
+
+        .sub6-legend {
+            background: #2a5298;
+        }
+
+        .mmwave-legend {
+            background: #f5af19;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Sub-6 GHz vs mmWave: Teknik Karşılaştırma</h1>
+            <p class="subtitle">5G NR Frekans Bantları - Detaylı Analiz</p>
+        </header>
+
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-icon sub6-legend"></div>
+                <span>Sub-6 GHz (FR1)</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-icon mmwave-legend"></div>
+                <span>mmWave (FR2)</span>
+            </div>
+        </div>
+
+        <div class="comparison-container">
+            <!-- Sub-6 GHz Column -->
+            <div class="column">
+                <div class="column-header sub6-header">
+                    Sub-6 GHz (FR1)
+                </div>
+
+                <div class="visualization">
+                    <svg viewBox="0 0 400 350" id="sub6-viz">
+                        <!-- Coverage Circle (Large) -->
+                        <circle cx="200" cy="175" r="140" class="coverage-circle sub6-coverage"/>
+
+                        <!-- Signal Waves (Long wavelength) -->
+                        <g id="sub6-waves">
+                            <path class="wave-path sub6-wave signal-pulse" style="animation-delay: 0s;"/>
+                            <path class="wave-path sub6-wave signal-pulse" style="animation-delay: 0.5s;"/>
+                            <path class="wave-path sub6-wave signal-pulse" style="animation-delay: 1s;"/>
+                        </g>
+
+                        <!-- Base Station (Tower) -->
+                        <g class="base-station">
+                            <!-- Tower base -->
+                            <rect x="185" y="150" width="30" height="60" fill="#2a5298" rx="3"/>
+                            <!-- Tower top -->
+                            <polygon points="200,135 190,150 210,150" fill="#1e3c72"/>
+                            <!-- Antenna elements -->
+                            <line x1="185" y1="145" x2="175" y2="140" stroke="#2a5298" stroke-width="3"/>
+                            <line x1="215" y1="145" x2="225" y2="140" stroke="#2a5298" stroke-width="3"/>
+                            <line x1="185" y1="160" x2="175" y2="155" stroke="#2a5298" stroke-width="3"/>
+                            <line x1="215" y1="160" x2="225" y2="155" stroke="#2a5298" stroke-width="3"/>
+                        </g>
+
+                        <!-- User Devices -->
+                        <g class="user-device">
+                            <!-- Device 1 -->
+                            <rect x="110" y="240" width="20" height="30" fill="#4a69bd" rx="3"/>
+                            <circle cx="120" cy="250" r="2" fill="#fff"/>
+                            <text x="120" y="285" font-size="12" text-anchor="middle" fill="#333">UE1</text>
+                        </g>
+
+                        <g class="user-device">
+                            <!-- Device 2 -->
+                            <rect x="270" y="210" width="20" height="30" fill="#4a69bd" rx="3"/>
+                            <circle cx="280" cy="220" r="2" fill="#fff"/>
+                            <text x="280" y="255" font-size="12" text-anchor="middle" fill="#333">UE2</text>
+                        </g>
+
+                        <g class="user-device">
+                            <!-- Device 3 -->
+                            <rect x="200" y="280" width="20" height="30" fill="#4a69bd" rx="3"/>
+                            <circle cx="210" cy="290" r="2" fill="#fff"/>
+                            <text x="210" y="325" font-size="12" text-anchor="middle" fill="#333">UE3</text>
+                        </g>
+
+                        <!-- Coverage Indicator -->
+                        <text x="200" y="30" font-size="14" text-anchor="middle" fill="#2a5298" font-weight="bold">
+                            Geniş Kapsama: 500-2000m
+                        </text>
+
+                        <!-- Wavelength Indicator -->
+                        <text x="200" y="340" font-size="12" text-anchor="middle" fill="#666">
+                            Dalga boyu: 4-73 cm (Uzun)
+                        </text>
+                    </svg>
+                </div>
+
+                <div class="specs-grid">
+                    <div class="spec-item sub6-spec">
+                        <div class="spec-label">Frekans Aralığı</div>
+                        <div class="spec-value">410 MHz - 7.125 GHz</div>
+                    </div>
+                    <div class="spec-item sub6-spec">
+                        <div class="spec-label">Dalga Boyu</div>
+                        <div class="spec-value">4 - 73 cm</div>
+                    </div>
+                    <div class="spec-item sub6-spec">
+                        <div class="spec-label">Kapsama Alanı</div>
+                        <div class="spec-value">500 - 2000 m (Makro Hücre)</div>
+                    </div>
+                    <div class="spec-item sub6-spec">
+                        <div class="spec-label">Kanal Bant Genişliği</div>
+                        <div class="spec-value">80 - 100 MHz</div>
+                    </div>
+                    <div class="spec-item sub6-spec">
+                        <div class="spec-label">Engel Penetrasyonu</div>
+                        <div class="spec-value">İyi (10-20 dB kayıp)</div>
+                    </div>
+                    <div class="spec-item sub6-spec">
+                        <div class="spec-label">Tipik Kullanım</div>
+                        <div class="spec-value">Geniş alan kapsaması, sürekli bağlantı</div>
+                    </div>
+                    <div class="spec-item sub6-spec">
+                        <div class="spec-label">3GPP Frekans Bandı</div>
+                        <div class="spec-value">FR1 (Frequency Range 1)</div>
+                    </div>
+                    <div class="spec-item sub6-spec">
+                        <div class="spec-label">Avantajlar</div>
+                        <div class="spec-value">Geniş kapsama, iyi bina içi penetrasyon, mevcut altyapı kullanımı</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- mmWave Column -->
+            <div class="column">
+                <div class="column-header mmwave-header">
+                    mmWave (FR2)
+                </div>
+
+                <div class="visualization">
+                    <svg viewBox="0 0 400 350" id="mmwave-viz">
+                        <!-- Coverage Circle (Small) -->
+                        <circle cx="200" cy="175" r="65" class="coverage-circle mmwave-coverage"/>
+
+                        <!-- Signal Waves (Short wavelength) -->
+                        <g id="mmwave-waves">
+                            <path class="wave-path mmwave-wave signal-pulse" style="animation-delay: 0s;"/>
+                            <path class="wave-path mmwave-wave signal-pulse" style="animation-delay: 0.3s;"/>
+                            <path class="wave-path mmwave-wave signal-pulse" style="animation-delay: 0.6s;"/>
+                        </g>
+
+                        <!-- Small Cell Base Station -->
+                        <g class="base-station">
+                            <!-- Small cell box -->
+                            <rect x="185" y="155" width="30" height="40" fill="#f5af19" rx="3"/>
+                            <!-- Panel antenna -->
+                            <rect x="180" y="150" width="40" height="8" fill="#f12711" rx="2"/>
+                            <!-- Antenna elements -->
+                            <circle cx="190" cy="154" r="1.5" fill="#fff"/>
+                            <circle cx="200" cy="154" r="1.5" fill="#fff"/>
+                            <circle cx="210" cy="154" r="1.5" fill="#fff"/>
+                        </g>
+
+                        <!-- User Devices (closer) -->
+                        <g class="user-device">
+                            <!-- Device 1 -->
+                            <rect x="160" y="220" width="20" height="30" fill="#e17055" rx="3"/>
+                            <circle cx="170" cy="230" r="2" fill="#fff"/>
+                            <text x="170" y="265" font-size="12" text-anchor="middle" fill="#333">UE1</text>
+                        </g>
+
+                        <g class="user-device">
+                            <!-- Device 2 -->
+                            <rect x="230" y="200" width="20" height="30" fill="#e17055" rx="3"/>
+                            <circle cx="240" cy="210" r="2" fill="#fff"/>
+                            <text x="240" y="245" font-size="12" text-anchor="middle" fill="#333">UE2</text>
+                        </g>
+
+                        <!-- Beam forming indicator -->
+                        <g opacity="0.4">
+                            <path d="M 200 158 L 170 220 L 180 220 L 200 168 L 220 220 L 230 220 Z"
+                                  fill="#f5af19" stroke="#f12711" stroke-width="1"/>
+                        </g>
+
+                        <!-- Coverage Indicator -->
+                        <text x="200" y="30" font-size="14" text-anchor="middle" fill="#f12711" font-weight="bold">
+                            Dar Kapsama: 50-200m
+                        </text>
+
+                        <!-- Wavelength Indicator -->
+                        <text x="200" y="340" font-size="12" text-anchor="middle" fill="#666">
+                            Dalga boyu: 3.5-12.5 mm (Kısa)
+                        </text>
+
+                        <!-- Beamforming label -->
+                        <text x="200" y="320" font-size="11" text-anchor="middle" fill="#f12711" font-style="italic">
+                            Beamforming (Işın Şekillendirme)
+                        </text>
+                    </svg>
+                </div>
+
+                <div class="specs-grid">
+                    <div class="spec-item mmwave-spec">
+                        <div class="spec-label">Frekans Aralığı</div>
+                        <div class="spec-value">24 - 86 GHz</div>
+                    </div>
+                    <div class="spec-item mmwave-spec">
+                        <div class="spec-label">Dalga Boyu</div>
+                        <div class="spec-value">3.5 - 12.5 mm</div>
+                    </div>
+                    <div class="spec-item mmwave-spec">
+                        <div class="spec-label">Kapsama Alanı</div>
+                        <div class="spec-value">50 - 200 m (Small Cell)</div>
+                    </div>
+                    <div class="spec-item mmwave-spec">
+                        <div class="spec-label">Kanal Bant Genişliği</div>
+                        <div class="spec-value">400 - 800 MHz</div>
+                    </div>
+                    <div class="spec-item mmwave-spec">
+                        <div class="spec-label">Engel Penetrasyonu</div>
+                        <div class="spec-value">Zayıf (40-80 dB kayıp)</div>
+                    </div>
+                    <div class="spec-item mmwave-spec">
+                        <div class="spec-label">Tipik Kullanım</div>
+                        <div class="spec-value">Hotspot, yoğun trafik alanları</div>
+                    </div>
+                    <div class="spec-item mmwave-spec">
+                        <div class="spec-label">3GPP Frekans Bandı</div>
+                        <div class="spec-value">FR2 (Frequency Range 2)</div>
+                    </div>
+                    <div class="spec-item mmwave-spec">
+                        <div class="spec-label">Avantajlar</div>
+                        <div class="spec-value">Çok yüksek hız (Gbps+), düşük gecikme, geniş bantgenişliği</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <div><strong>5G NR (New Radio) Teknik Spesifikasyonları</strong></div>
+            <div class="reference">
+                Referanslar: 3GPP TS 36.300, 3GPP TS 38.300, 3GPP TS 38.101-1, 3GPP TS 38.321
+            </div>
+            <div style="margin-top: 10px; color: #999;">
+                ITU-R M.2083 | IMT-2020 Spesifikasyonlarına Uygun
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        // Create animated sine waves for Sub-6 GHz (longer wavelength)
+        function createSub6Waves() {
+            const svg = document.getElementById('sub6-viz');
+            const paths = svg.querySelectorAll('#sub6-waves path');
+
+            paths.forEach((path, index) => {
+                let points = [];
+                const wavelength = 40; // Longer wavelength
+                const amplitude = 15;
+                const centerY = 175;
+
+                for (let x = 60; x <= 340; x += 2) {
+                    const y = centerY + amplitude * Math.sin((x / wavelength) * Math.PI * 2 + index * Math.PI / 3);
+                    points.push(`${x},${y}`);
+                }
+
+                path.setAttribute('d', 'M' + points.join(' L'));
+            });
+        }
+
+        // Create animated sine waves for mmWave (shorter wavelength)
+        function createMmWaveWaves() {
+            const svg = document.getElementById('mmwave-viz');
+            const paths = svg.querySelectorAll('#mmwave-waves path');
+
+            paths.forEach((path, index) => {
+                let points = [];
+                const wavelength = 12; // Much shorter wavelength
+                const amplitude = 8;
+                const centerY = 175;
+
+                for (let x = 135; x <= 265; x += 1) {
+                    const y = centerY + amplitude * Math.sin((x / wavelength) * Math.PI * 2 + index * Math.PI / 3);
+                    points.push(`${x},${y}`);
+                }
+
+                path.setAttribute('d', 'M' + points.join(' L'));
+            });
+        }
+
+        // Animate waves
+        function animateWaves() {
+            let phase = 0;
+
+            setInterval(() => {
+                phase += 0.1;
+
+                // Sub-6 GHz waves
+                const sub6Paths = document.querySelectorAll('#sub6-waves path');
+                sub6Paths.forEach((path, index) => {
+                    let points = [];
+                    const wavelength = 40;
+                    const amplitude = 15;
+                    const centerY = 175;
+
+                    for (let x = 60; x <= 340; x += 2) {
+                        const y = centerY + amplitude * Math.sin((x / wavelength) * Math.PI * 2 + index * Math.PI / 3 + phase);
+                        points.push(`${x},${y}`);
+                    }
+
+                    path.setAttribute('d', 'M' + points.join(' L'));
+                });
+
+                // mmWave waves
+                const mmWavePaths = document.querySelectorAll('#mmwave-waves path');
+                mmWavePaths.forEach((path, index) => {
+                    let points = [];
+                    const wavelength = 12;
+                    const amplitude = 8;
+                    const centerY = 175;
+
+                    for (let x = 135; x <= 265; x += 1) {
+                        const y = centerY + amplitude * Math.sin((x / wavelength) * Math.PI * 2 + index * Math.PI / 3 + phase);
+                        points.push(`${x},${y}`);
+                    }
+
+                    path.setAttribute('d', 'M' + points.join(' L'));
+                });
+            }, 50);
+        }
+
+        // Initialize on page load
+        window.addEventListener('load', () => {
+            createSub6Waves();
+            createMmWaveWaves();
+            animateWaves();
+        });
+    </script>
+</body>
+</html>
