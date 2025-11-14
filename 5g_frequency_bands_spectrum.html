@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>5G NR Frekans Bantları (FR1 ve FR2)</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .subtitle {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .info-box {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            border-left: 5px solid #2a5298;
+            padding: 20px;
+            margin-bottom: 30px;
+            border-radius: 10px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .info-item {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .info-label {
+            font-weight: bold;
+            color: #1e3c72;
+            margin-bottom: 8px;
+            font-size: 1.1em;
+        }
+
+        .info-value {
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .spectrum-container {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        .spectrum-section {
+            margin-bottom: 40px;
+        }
+
+        .section-title {
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-bottom: 20px;
+            padding: 10px 15px;
+            border-radius: 8px;
+            color: white;
+            text-align: center;
+        }
+
+        .fr1-title {
+            background: linear-gradient(135deg, #3b82f6 0%, #10b981 100%);
+        }
+
+        .fr2-title {
+            background: linear-gradient(135deg, #f97316 0%, #ef4444 100%);
+        }
+
+        svg {
+            width: 100%;
+            height: auto;
+        }
+
+        .band-block {
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .band-block:hover {
+            opacity: 0.8;
+            filter: brightness(1.1);
+        }
+
+        .band-block rect {
+            stroke: #333;
+            stroke-width: 2;
+        }
+
+        .tooltip {
+            position: absolute;
+            background: rgba(0, 0, 0, 0.95);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 10px;
+            font-size: 0.95em;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: 1000;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.4);
+            max-width: 350px;
+        }
+
+        .tooltip.show {
+            opacity: 1;
+        }
+
+        .tooltip-title {
+            font-size: 1.1em;
+            font-weight: bold;
+            margin-bottom: 8px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+            padding-bottom: 5px;
+        }
+
+        .tooltip-detail {
+            margin: 5px 0;
+        }
+
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 25px;
+            flex-wrap: wrap;
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.95em;
+        }
+
+        .legend-color {
+            width: 30px;
+            height: 20px;
+            border-radius: 4px;
+            border: 2px solid #333;
+        }
+
+        .special-marker {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin-top: 20px;
+            border-radius: 8px;
+        }
+
+        .special-marker-title {
+            font-weight: bold;
+            color: #856404;
+            margin-bottom: 5px;
+        }
+
+        footer {
+            background: #f8f9fa;
+            padding: 20px;
+            text-align: center;
+            color: #666;
+            font-size: 0.9em;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 1.8em;
+            }
+
+            .info-box {
+                grid-template-columns: 1fr;
+            }
+
+            .content {
+                padding: 20px;
+            }
+        }
+
+        .region-flag {
+            font-size: 1.2em;
+        }
+
+        .absorption-warning {
+            background: #ffe5e5;
+            border: 2px dashed #ef4444;
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+            margin-top: 10px;
+        }
+
+        .absorption-warning-title {
+            font-weight: bold;
+            color: #dc2626;
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>5G NR Frekans Bantları (FR1 ve FR2)</h1>
+            <p class="subtitle">3GPP TS 38.101 Standardı - Spektrum Diyagramı</p>
+        </header>
+
+        <div class="content">
+            <div class="info-box">
+                <div class="info-item">
+                    <div class="info-label">🔵 FR1 (Frequency Range 1)</div>
+                    <div class="info-value">
+                        <strong>Frekans:</strong> 410 MHz - 7.125 GHz<br>
+                        <strong>Kanal BW:</strong> 5-100 MHz<br>
+                        <strong>Özellik:</strong> Geniş kapsama, iyi penetrasyon<br>
+                        <strong>Kullanım:</strong> Sürekli kapsama katmanı
+                    </div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">🔴 FR2 (Frequency Range 2)</div>
+                    <div class="info-value">
+                        <strong>Frekans:</strong> 24.25 - 52.6 GHz (genişletilmiş: 71 GHz'e kadar)<br>
+                        <strong>Kanal BW:</strong> 50-400 MHz<br>
+                        <strong>Özellik:</strong> Çok yüksek hız, dar kapsama<br>
+                        <strong>Kullanım:</strong> Hotspot, yüksek kapasite
+                    </div>
+                </div>
+            </div>
+
+            <div class="spectrum-container">
+                <!-- FR1 Spectrum -->
+                <div class="spectrum-section">
+                    <div class="section-title fr1-title">
+                        FR1: Sub-6 GHz Bantları (410 MHz - 7.125 GHz)
+                    </div>
+                    <svg id="fr1-spectrum" viewBox="0 0 1400 400"></svg>
+                </div>
+
+                <!-- FR2 Spectrum -->
+                <div class="spectrum-section">
+                    <div class="section-title fr2-title">
+                        FR2: mmWave Bantları (24.25 - 52.6 GHz)
+                    </div>
+                    <svg id="fr2-spectrum" viewBox="0 0 1400 400"></svg>
+
+                    <div class="absorption-warning">
+                        <div class="absorption-warning-title">⚠️ Oksijen Absorpsiyonu - 60 GHz Bölgesi</div>
+                        <div style="color: #666; font-size: 0.9em;">
+                            60 GHz civarında atmosferik O₂ molekülleri tarafından yüksek sinyal zayıflaması (~15 dB/km).
+                            Bu nedenle bu bant genellikle kısa menzilli iletişim için kullanılır.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="special-marker">
+                    <div class="special-marker-title">🇹🇷 Türkiye İçin Özel Not:</div>
+                    <div style="color: #666;">
+                        <strong>n78 (3.5 GHz) Bandı:</strong> BTK tarafından 400 MHz bant genişliği tahsis edilmiştir
+                        (3.4-3.8 GHz). Türkiye'de 5G için birincil bant olarak kullanılmaktadır.
+                    </div>
+                </div>
+
+                <div class="legend">
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #1e40af;"></div>
+                        <span>FDD (700-900 MHz) - Geniş Kapsama</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #3b82f6;"></div>
+                        <span>FDD (1.8-2.6 GHz) - LTE-A Yeniden Kullanım</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #10b981;"></div>
+                        <span>TDD (3.3-5.0 GHz) - 5G Primary C-Band</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #f97316;"></div>
+                        <span>mmWave (24-29 GHz) - Erken Deployment</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #ef4444;"></div>
+                        <span>mmWave (37-48 GHz) - Yüksek Kapasite</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <div><strong>3GPP Release 15/16/17 - 5G NR Frekans Bantları</strong></div>
+            <div style="margin-top: 10px;">
+                Referanslar: 3GPP TS 38.101-1 (FR1), 3GPP TS 38.101-2 (FR2)
+            </div>
+            <div style="margin-top: 5px; color: #999;">
+                Not: Bantların kullanımı ülkelere ve bölgelere göre değişiklik gösterebilir
+            </div>
+        </footer>
+    </div>
+
+    <div class="tooltip" id="tooltip"></div>
+
+    <script>
+        const tooltip = document.getElementById('tooltip');
+
+        // FR1 Band definitions
+        const fr1Bands = [
+            {
+                name: 'n28',
+                freqStart: 703,
+                freqEnd: 803,
+                duplex: 'FDD',
+                bandwidth: 100,
+                color: '#1e40af',
+                regions: '🌍🌎',
+                usage: 'Geniş kapsama, kırsal alanlar',
+                note: 'Digital Dividend band (700 MHz APT)'
+            },
+            {
+                name: 'n3',
+                freqStart: 1710,
+                freqEnd: 1880,
+                duplex: 'FDD',
+                bandwidth: 170,
+                color: '#3b82f6',
+                regions: '🌍🌏',
+                usage: 'LTE yeniden kullanım, kentsel kapsama',
+                note: 'Yaygın kullanılan 1800 MHz band'
+            },
+            {
+                name: 'n1',
+                freqStart: 2110,
+                freqEnd: 2170,
+                duplex: 'FDD',
+                bandwidth: 60,
+                color: '#3b82f6',
+                regions: '🌍🌎🌏',
+                usage: 'Global LTE/5G band',
+                note: 'IMT-2000 / WCDMA band 1'
+            },
+            {
+                name: 'n41',
+                freqStart: 2496,
+                freqEnd: 2690,
+                duplex: 'TDD',
+                bandwidth: 194,
+                color: '#3b82f6',
+                regions: '🌎🌏',
+                usage: 'TDD band, orta kapasite',
+                note: 'BRS/EBS band (ABD, Çin, Hindistan)'
+            },
+            {
+                name: 'n7',
+                freqStart: 2500,
+                freqEnd: 2690,
+                duplex: 'FDD',
+                bandwidth: 190,
+                color: '#3b82f6',
+                regions: '🌍🌎🌏',
+                usage: 'LTE-A yeniden kullanım',
+                note: '2.6 GHz FDD (Avrupa, Asya)'
+            },
+            {
+                name: 'n78',
+                freqStart: 3300,
+                freqEnd: 3800,
+                duplex: 'TDD',
+                bandwidth: 500,
+                color: '#10b981',
+                regions: '🌍🌏 🇹🇷',
+                usage: '5G PRIMARY BAND - C-Band',
+                note: 'Türkiye: 400 MHz (3.4-3.8 GHz), Global 5G ana bandı'
+            },
+            {
+                name: 'n77',
+                freqStart: 3300,
+                freqEnd: 4200,
+                duplex: 'TDD',
+                bandwidth: 900,
+                color: '#059669',
+                regions: '🌍🌎🌏',
+                usage: '5G PRIMARY BAND - C-Band Extended',
+                note: 'n78 genişletilmiş versiyonu (3.3-4.2 GHz)'
+            },
+            {
+                name: 'n79',
+                freqStart: 4400,
+                freqEnd: 5000,
+                duplex: 'TDD',
+                bandwidth: 600,
+                color: '#10b981',
+                regions: '🌏',
+                usage: 'C-Band üst frekans',
+                note: 'Çin, Japonya (4.4-5.0 GHz)'
+            }
+        ];
+
+        // FR2 Band definitions
+        const fr2Bands = [
+            {
+                name: 'n258',
+                freqStart: 24250,
+                freqEnd: 27500,
+                duplex: 'TDD',
+                bandwidth: 3250,
+                color: '#f97316',
+                regions: '🌎',
+                usage: 'mmWave erken deployment',
+                note: 'ABD: 24 GHz band (24.25-27.5 GHz)'
+            },
+            {
+                name: 'n261',
+                freqStart: 27500,
+                freqEnd: 28350,
+                duplex: 'TDD',
+                bandwidth: 850,
+                color: '#f97316',
+                regions: '🌎',
+                usage: 'mmWave hotspot',
+                note: '28 GHz band (27.5-28.35 GHz)'
+            },
+            {
+                name: 'n257',
+                freqStart: 26500,
+                freqEnd: 29500,
+                duplex: 'TDD',
+                bandwidth: 3000,
+                color: '#fb923c',
+                regions: '🌎🌏',
+                usage: 'mmWave geniş bant',
+                note: '28 GHz extended (26.5-29.5 GHz)'
+            },
+            {
+                name: 'n260',
+                freqStart: 37000,
+                freqEnd: 40000,
+                duplex: 'TDD',
+                bandwidth: 3000,
+                color: '#ef4444',
+                regions: '🌎',
+                usage: 'Yüksek kapasite mmWave',
+                note: '39 GHz band (37-40 GHz)'
+            },
+            {
+                name: 'n262',
+                freqStart: 47200,
+                freqEnd: 48200,
+                duplex: 'TDD',
+                bandwidth: 1000,
+                color: '#ef4444',
+                regions: '🌎',
+                usage: 'Yüksek bant mmWave',
+                note: '47 GHz band (47.2-48.2 GHz)'
+            }
+        ];
+
+        // Draw FR1 Spectrum
+        function drawFR1Spectrum() {
+            const svg = document.getElementById('fr1-spectrum');
+            const svgNS = "http://www.w3.org/2000/svg";
+
+            const padding = { left: 50, right: 50, top: 50, bottom: 80 };
+            const width = 1400;
+            const height = 400;
+            const graphWidth = width - padding.left - padding.right;
+            const graphHeight = height - padding.top - padding.bottom;
+
+            const minFreq = 400;
+            const maxFreq = 5200;
+
+            function getX(freq) {
+                return padding.left + ((freq - minFreq) / (maxFreq - minFreq)) * graphWidth;
+            }
+
+            // Draw axis
+            const axis = document.createElementNS(svgNS, 'line');
+            axis.setAttribute('x1', padding.left);
+            axis.setAttribute('y1', height - padding.bottom);
+            axis.setAttribute('x2', width - padding.right);
+            axis.setAttribute('y2', height - padding.bottom);
+            axis.setAttribute('stroke', '#333');
+            axis.setAttribute('stroke-width', '3');
+            svg.appendChild(axis);
+
+            // Draw frequency markers
+            for (let freq = 500; freq <= 5000; freq += 500) {
+                const x = getX(freq);
+                const tick = document.createElementNS(svgNS, 'line');
+                tick.setAttribute('x1', x);
+                tick.setAttribute('y1', height - padding.bottom);
+                tick.setAttribute('x2', x);
+                tick.setAttribute('y2', height - padding.bottom + 10);
+                tick.setAttribute('stroke', '#333');
+                tick.setAttribute('stroke-width', '2');
+                svg.appendChild(tick);
+
+                const label = document.createElementNS(svgNS, 'text');
+                label.setAttribute('x', x);
+                label.setAttribute('y', height - padding.bottom + 30);
+                label.setAttribute('text-anchor', 'middle');
+                label.setAttribute('font-size', '12');
+                label.setAttribute('fill', '#333');
+                label.textContent = (freq / 1000).toFixed(1) + ' GHz';
+                svg.appendChild(label);
+            }
+
+            // Axis label
+            const axisLabel = document.createElementNS(svgNS, 'text');
+            axisLabel.setAttribute('x', width / 2);
+            axisLabel.setAttribute('y', height - 10);
+            axisLabel.setAttribute('text-anchor', 'middle');
+            axisLabel.setAttribute('font-size', '14');
+            axisLabel.setAttribute('font-weight', 'bold');
+            axisLabel.setAttribute('fill', '#333');
+            axisLabel.textContent = 'Frekans (GHz)';
+            svg.appendChild(axisLabel);
+
+            // Draw bands with vertical stacking for overlapping bands
+            const bandRows = [];
+            fr1Bands.forEach(band => {
+                let rowIndex = 0;
+                let placed = false;
+
+                while (!placed) {
+                    if (!bandRows[rowIndex]) {
+                        bandRows[rowIndex] = [];
+                    }
+
+                    const overlap = bandRows[rowIndex].some(b =>
+                        !(band.freqEnd <= b.freqStart || band.freqStart >= b.freqEnd)
+                    );
+
+                    if (!overlap) {
+                        bandRows[rowIndex].push(band);
+                        band.row = rowIndex;
+                        placed = true;
+                    } else {
+                        rowIndex++;
+                    }
+                }
+            });
+
+            const rowHeight = 60;
+            const rowGap = 10;
+
+            fr1Bands.forEach(band => {
+                const x1 = getX(band.freqStart);
+                const x2 = getX(band.freqEnd);
+                const y = padding.top + band.row * (rowHeight + rowGap);
+                const bandWidth = x2 - x1;
+
+                const group = document.createElementNS(svgNS, 'g');
+                group.setAttribute('class', 'band-block');
+
+                const rect = document.createElementNS(svgNS, 'rect');
+                rect.setAttribute('x', x1);
+                rect.setAttribute('y', y);
+                rect.setAttribute('width', bandWidth);
+                rect.setAttribute('height', rowHeight);
+                rect.setAttribute('fill', band.color);
+                rect.setAttribute('rx', '5');
+                group.appendChild(rect);
+
+                // Band name
+                const nameText = document.createElementNS(svgNS, 'text');
+                nameText.setAttribute('x', x1 + bandWidth / 2);
+                nameText.setAttribute('y', y + 22);
+                nameText.setAttribute('text-anchor', 'middle');
+                nameText.setAttribute('font-size', '16');
+                nameText.setAttribute('font-weight', 'bold');
+                nameText.setAttribute('fill', 'white');
+                nameText.textContent = band.name;
+                group.appendChild(nameText);
+
+                // Bandwidth
+                const bwText = document.createElementNS(svgNS, 'text');
+                bwText.setAttribute('x', x1 + bandWidth / 2);
+                bwText.setAttribute('y', y + 40);
+                bwText.setAttribute('text-anchor', 'middle');
+                bwText.setAttribute('font-size', '12');
+                bwText.setAttribute('fill', 'white');
+                bwText.textContent = band.bandwidth + ' MHz';
+                group.appendChild(bwText);
+
+                // Region flags
+                const regionText = document.createElementNS(svgNS, 'text');
+                regionText.setAttribute('x', x1 + bandWidth / 2);
+                regionText.setAttribute('y', y + 55);
+                regionText.setAttribute('text-anchor', 'middle');
+                regionText.setAttribute('font-size', '14');
+                regionText.textContent = band.regions;
+                group.appendChild(regionText);
+
+                // Tooltip
+                group.addEventListener('mouseenter', (e) => {
+                    tooltip.innerHTML = `
+                        <div class="tooltip-title">${band.name} (${band.duplex})</div>
+                        <div class="tooltip-detail"><strong>Frekans:</strong> ${band.freqStart}-${band.freqEnd} MHz</div>
+                        <div class="tooltip-detail"><strong>Bant Genişliği:</strong> ${band.bandwidth} MHz</div>
+                        <div class="tooltip-detail"><strong>Kullanım:</strong> ${band.usage}</div>
+                        <div class="tooltip-detail"><strong>Not:</strong> ${band.note}</div>
+                    `;
+                    tooltip.classList.add('show');
+                });
+
+                group.addEventListener('mousemove', (e) => {
+                    tooltip.style.left = (e.pageX + 15) + 'px';
+                    tooltip.style.top = (e.pageY - 15) + 'px';
+                });
+
+                group.addEventListener('mouseleave', () => {
+                    tooltip.classList.remove('show');
+                });
+
+                svg.appendChild(group);
+            });
+        }
+
+        // Draw FR2 Spectrum
+        function drawFR2Spectrum() {
+            const svg = document.getElementById('fr2-spectrum');
+            const svgNS = "http://www.w3.org/2000/svg";
+
+            const padding = { left: 50, right: 50, top: 50, bottom: 80 };
+            const width = 1400;
+            const height = 400;
+            const graphWidth = width - padding.left - padding.right;
+            const graphHeight = height - padding.top - padding.bottom;
+
+            const minFreq = 24000;
+            const maxFreq = 71000;
+
+            function getX(freq) {
+                return padding.left + ((freq - minFreq) / (maxFreq - minFreq)) * graphWidth;
+            }
+
+            // Draw axis
+            const axis = document.createElementNS(svgNS, 'line');
+            axis.setAttribute('x1', padding.left);
+            axis.setAttribute('y1', height - padding.bottom);
+            axis.setAttribute('x2', width - padding.right);
+            axis.setAttribute('y2', height - padding.bottom);
+            axis.setAttribute('stroke', '#333');
+            axis.setAttribute('stroke-width', '3');
+            svg.appendChild(axis);
+
+            // Draw frequency markers
+            for (let freq = 25000; freq <= 70000; freq += 5000) {
+                const x = getX(freq);
+                const tick = document.createElementNS(svgNS, 'line');
+                tick.setAttribute('x1', x);
+                tick.setAttribute('y1', height - padding.bottom);
+                tick.setAttribute('x2', x);
+                tick.setAttribute('y2', height - padding.bottom + 10);
+                tick.setAttribute('stroke', '#333');
+                tick.setAttribute('stroke-width', '2');
+                svg.appendChild(tick);
+
+                const label = document.createElementNS(svgNS, 'text');
+                label.setAttribute('x', x);
+                label.setAttribute('y', height - padding.bottom + 30);
+                label.setAttribute('text-anchor', 'middle');
+                label.setAttribute('font-size', '12');
+                label.setAttribute('fill', '#333');
+                label.textContent = freq / 1000 + ' GHz';
+                svg.appendChild(label);
+            }
+
+            // Axis label
+            const axisLabel = document.createElementNS(svgNS, 'text');
+            axisLabel.setAttribute('x', width / 2);
+            axisLabel.setAttribute('y', height - 10);
+            axisLabel.setAttribute('text-anchor', 'middle');
+            axisLabel.setAttribute('font-size', '14');
+            axisLabel.setAttribute('font-weight', 'bold');
+            axisLabel.setAttribute('fill', '#333');
+            axisLabel.textContent = 'Frekans (GHz)';
+            svg.appendChild(axisLabel);
+
+            // O2 Absorption marker at 60 GHz
+            const o2X = getX(60000);
+            const o2Line = document.createElementNS(svgNS, 'line');
+            o2Line.setAttribute('x1', o2X);
+            o2Line.setAttribute('y1', padding.top);
+            o2Line.setAttribute('x2', o2X);
+            o2Line.setAttribute('y2', height - padding.bottom);
+            o2Line.setAttribute('stroke', '#ef4444');
+            o2Line.setAttribute('stroke-width', '3');
+            o2Line.setAttribute('stroke-dasharray', '10,5');
+            o2Line.setAttribute('opacity', '0.6');
+            svg.appendChild(o2Line);
+
+            const o2Text = document.createElementNS(svgNS, 'text');
+            o2Text.setAttribute('x', o2X);
+            o2Text.setAttribute('y', padding.top - 10);
+            o2Text.setAttribute('text-anchor', 'middle');
+            o2Text.setAttribute('font-size', '14');
+            o2Text.setAttribute('font-weight', 'bold');
+            o2Text.setAttribute('fill', '#ef4444');
+            o2Text.textContent = '⚠️ O₂ Absorpsiyon (60 GHz)';
+            svg.appendChild(o2Text);
+
+            // Draw bands with vertical stacking
+            const bandRows = [];
+            fr2Bands.forEach(band => {
+                let rowIndex = 0;
+                let placed = false;
+
+                while (!placed) {
+                    if (!bandRows[rowIndex]) {
+                        bandRows[rowIndex] = [];
+                    }
+
+                    const overlap = bandRows[rowIndex].some(b =>
+                        !(band.freqEnd <= b.freqStart || band.freqStart >= b.freqEnd)
+                    );
+
+                    if (!overlap) {
+                        bandRows[rowIndex].push(band);
+                        band.row = rowIndex;
+                        placed = true;
+                    } else {
+                        rowIndex++;
+                    }
+                }
+            });
+
+            const rowHeight = 60;
+            const rowGap = 10;
+
+            fr2Bands.forEach(band => {
+                const x1 = getX(band.freqStart);
+                const x2 = getX(band.freqEnd);
+                const y = padding.top + band.row * (rowHeight + rowGap);
+                const bandWidth = x2 - x1;
+
+                const group = document.createElementNS(svgNS, 'g');
+                group.setAttribute('class', 'band-block');
+
+                const rect = document.createElementNS(svgNS, 'rect');
+                rect.setAttribute('x', x1);
+                rect.setAttribute('y', y);
+                rect.setAttribute('width', bandWidth);
+                rect.setAttribute('height', rowHeight);
+                rect.setAttribute('fill', band.color);
+                rect.setAttribute('rx', '5');
+                group.appendChild(rect);
+
+                // Band name
+                const nameText = document.createElementNS(svgNS, 'text');
+                nameText.setAttribute('x', x1 + bandWidth / 2);
+                nameText.setAttribute('y', y + 22);
+                nameText.setAttribute('text-anchor', 'middle');
+                nameText.setAttribute('font-size', '16');
+                nameText.setAttribute('font-weight', 'bold');
+                nameText.setAttribute('fill', 'white');
+                nameText.textContent = band.name;
+                group.appendChild(nameText);
+
+                // Bandwidth
+                const bwText = document.createElementNS(svgNS, 'text');
+                bwText.setAttribute('x', x1 + bandWidth / 2);
+                bwText.setAttribute('y', y + 40);
+                bwText.setAttribute('text-anchor', 'middle');
+                bwText.setAttribute('font-size', '12');
+                bwText.setAttribute('fill', 'white');
+                bwText.textContent = band.bandwidth + ' MHz';
+                group.appendChild(bwText);
+
+                // Region flags
+                const regionText = document.createElementNS(svgNS, 'text');
+                regionText.setAttribute('x', x1 + bandWidth / 2);
+                regionText.setAttribute('y', y + 55);
+                regionText.setAttribute('text-anchor', 'middle');
+                regionText.setAttribute('font-size', '14');
+                regionText.textContent = band.regions;
+                group.appendChild(regionText);
+
+                // Tooltip
+                group.addEventListener('mouseenter', (e) => {
+                    tooltip.innerHTML = `
+                        <div class="tooltip-title">${band.name} (${band.duplex})</div>
+                        <div class="tooltip-detail"><strong>Frekans:</strong> ${(band.freqStart/1000).toFixed(2)}-${(band.freqEnd/1000).toFixed(2)} GHz</div>
+                        <div class="tooltip-detail"><strong>Bant Genişliği:</strong> ${band.bandwidth} MHz</div>
+                        <div class="tooltip-detail"><strong>Kullanım:</strong> ${band.usage}</div>
+                        <div class="tooltip-detail"><strong>Not:</strong> ${band.note}</div>
+                    `;
+                    tooltip.classList.add('show');
+                });
+
+                group.addEventListener('mousemove', (e) => {
+                    tooltip.style.left = (e.pageX + 15) + 'px';
+                    tooltip.style.top = (e.pageY - 15) + 'px';
+                });
+
+                group.addEventListener('mouseleave', () => {
+                    tooltip.classList.remove('show');
+                });
+
+                svg.appendChild(group);
+            });
+        }
+
+        // Initialize
+        window.addEventListener('load', () => {
+            drawFR1Spectrum();
+            drawFR2Spectrum();
+        });
+    </script>
+</body>
+</html>
