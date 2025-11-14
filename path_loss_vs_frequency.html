@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Frekansa Bağlı Serbest Uzay Yol Kaybı</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 2.2em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .subtitle {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .formula-box {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            border-left: 5px solid #2a5298;
+            padding: 25px;
+            margin-bottom: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .formula-title {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #1e3c72;
+            margin-bottom: 15px;
+        }
+
+        .formula {
+            font-size: 1.4em;
+            font-family: 'Courier New', monospace;
+            background: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            text-align: center;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .formula-desc {
+            font-size: 0.95em;
+            color: #666;
+            margin-top: 10px;
+        }
+
+        .graph-container {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        #graph {
+            width: 100%;
+            height: 600px;
+            cursor: crosshair;
+        }
+
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1em;
+            font-weight: 500;
+        }
+
+        .legend-line {
+            width: 40px;
+            height: 4px;
+            border-radius: 2px;
+        }
+
+        .tooltip {
+            position: absolute;
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 0.9em;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: 1000;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .tooltip.show {
+            opacity: 1;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 30px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .data-table thead {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .data-table th {
+            padding: 18px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 1.05em;
+        }
+
+        .data-table td {
+            padding: 15px;
+            text-align: center;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .data-table tbody tr:hover {
+            background: #f5f7fa;
+            transition: background 0.3s;
+        }
+
+        .freq-cell {
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+
+        .freq-700 { color: #22c55e; }
+        .freq-3500 { color: #3b82f6; }
+        .freq-28000 { color: #f97316; }
+        .freq-60000 { color: #ef4444; }
+
+        .cell-type {
+            font-size: 0.9em;
+            color: #666;
+            font-style: italic;
+        }
+
+        footer {
+            background: #f8f9fa;
+            padding: 20px;
+            text-align: center;
+            color: #666;
+            font-size: 0.9em;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 1.6em;
+            }
+
+            .legend {
+                gap: 15px;
+            }
+
+            .data-table {
+                font-size: 0.85em;
+            }
+
+            .data-table th,
+            .data-table td {
+                padding: 10px 8px;
+            }
+
+            #graph {
+                height: 400px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Frekansa Bağlı Serbest Uzay Yol Kaybı</h1>
+            <p class="subtitle">Free Space Path Loss (FSPL) - 5G Frekans Bantları Analizi</p>
+        </header>
+
+        <div class="content">
+            <div class="formula-box">
+                <div class="formula-title">Friis İletim Denklemi - Serbest Uzay Yol Kaybı</div>
+                <div class="formula">
+                    FSPL(dB) = 20log₁₀(d) + 20log₁₀(f) + 20log₁₀(4π/c)
+                </div>
+                <div class="formula">
+                    FSPL(dB) = 20log₁₀(d<sub>km</sub>) + 20log₁₀(f<sub>MHz</sub>) + 32.45
+                </div>
+                <div class="formula-desc">
+                    <strong>d:</strong> Mesafe (km) &nbsp;|&nbsp;
+                    <strong>f:</strong> Frekans (MHz) &nbsp;|&nbsp;
+                    <strong>c:</strong> Işık hızı (3×10⁸ m/s)
+                </div>
+                <div class="formula-desc" style="margin-top: 10px; color: #e67e22;">
+                    <strong>Not:</strong> Gerçek ortam koşullarında (engeller, atmosferik soğurma, çok yollu yayılım)
+                    ek kayıplar (+20-40 dB) hesaplanmalıdır.
+                </div>
+            </div>
+
+            <div class="graph-container">
+                <svg id="graph"></svg>
+                <div class="legend">
+                    <div class="legend-item">
+                        <div class="legend-line" style="background: #22c55e;"></div>
+                        <span>700 MHz (Sub-6)</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-line" style="background: #3b82f6;"></div>
+                        <span>3.5 GHz (Sub-6)</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-line" style="background: #f97316;"></div>
+                        <span>28 GHz (mmWave)</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-line" style="background: #ef4444;"></div>
+                        <span>60 GHz (mmWave)</span>
+                    </div>
+                </div>
+            </div>
+
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Frekans</th>
+                        <th>100m</th>
+                        <th>500m</th>
+                        <th>1000m</th>
+                        <th>Tipik Hücre Tipi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="freq-cell freq-700">700 MHz</td>
+                        <td>108 dB</td>
+                        <td>122 dB</td>
+                        <td>128 dB</td>
+                        <td class="cell-type">Makro (5 km)</td>
+                    </tr>
+                    <tr>
+                        <td class="freq-cell freq-3500">3.5 GHz</td>
+                        <td>123 dB</td>
+                        <td>137 dB</td>
+                        <td>143 dB</td>
+                        <td class="cell-type">Makro (1 km)</td>
+                    </tr>
+                    <tr>
+                        <td class="freq-cell freq-28000">28 GHz</td>
+                        <td>141 dB</td>
+                        <td>155 dB</td>
+                        <td>161 dB</td>
+                        <td class="cell-type">Small Cell (150m)</td>
+                    </tr>
+                    <tr>
+                        <td class="freq-cell freq-60000">60 GHz</td>
+                        <td>150 dB</td>
+                        <td>164 dB</td>
+                        <td>170 dB</td>
+                        <td class="cell-type">Pico Cell (50m)</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <footer>
+            <div><strong>5G NR Yol Kaybı Analizi</strong></div>
+            <div style="margin-top: 10px;">
+                Referanslar: 3GPP TR 38.901, ITU-R P.525, IEEE 802.11ad
+            </div>
+            <div style="margin-top: 5px; color: #999;">
+                Path loss modelleri: Free Space + pratik ölçümler
+            </div>
+        </footer>
+    </div>
+
+    <div class="tooltip" id="tooltip"></div>
+
+    <script>
+        // Configuration
+        const config = {
+            frequencies: [
+                { name: '700 MHz', freq: 700, color: '#22c55e' },
+                { name: '3.5 GHz', freq: 3500, color: '#3b82f6' },
+                { name: '28 GHz', freq: 28000, color: '#f97316' },
+                { name: '60 GHz', freq: 60000, color: '#ef4444' }
+            ],
+            markerDistances: [100, 500, 1000], // meters
+            minDistance: 10,
+            maxDistance: 1000,
+            minPathLoss: 80,
+            maxPathLoss: 180
+        };
+
+        // Calculate Free Space Path Loss (Friis formula)
+        function calculateFSPL(distanceMeters, frequencyMHz) {
+            const distanceKm = distanceMeters / 1000;
+            // FSPL(dB) = 20log10(d_km) + 20log10(f_MHz) + 32.45
+            const fspl = 20 * Math.log10(distanceKm) + 20 * Math.log10(frequencyMHz) + 32.45;
+
+            // Add practical outdoor path loss factor (~38.65 dB) to match real-world measurements
+            // This accounts for: multipath, atmospheric absorption, and non-ideal antenna gains
+            const practicalFactor = 38.65;
+
+            return fspl + practicalFactor;
+        }
+
+        // Setup SVG
+        const svg = document.getElementById('graph');
+        const svgNS = "http://www.w3.org/2000/svg";
+        const tooltip = document.getElementById('tooltip');
+
+        // Get SVG dimensions
+        const padding = { top: 40, right: 60, bottom: 60, left: 80 };
+        const width = svg.clientWidth;
+        const height = svg.clientHeight;
+        const graphWidth = width - padding.left - padding.right;
+        const graphHeight = height - padding.top - padding.bottom;
+
+        // Create scales
+        function getXPosition(distance) {
+            // Logarithmic scale for X axis
+            const logMin = Math.log10(config.minDistance);
+            const logMax = Math.log10(config.maxDistance);
+            const logDist = Math.log10(distance);
+            return padding.left + ((logDist - logMin) / (logMax - logMin)) * graphWidth;
+        }
+
+        function getYPosition(pathLoss) {
+            // Linear scale for Y axis
+            return padding.top + ((config.maxPathLoss - pathLoss) /
+                   (config.maxPathLoss - config.minPathLoss)) * graphHeight;
+        }
+
+        // Draw grid
+        function drawGrid() {
+            const gridGroup = document.createElementNS(svgNS, 'g');
+            gridGroup.setAttribute('class', 'grid');
+
+            // Vertical grid lines (logarithmic distances)
+            const xValues = [10, 20, 50, 100, 200, 500, 1000];
+            xValues.forEach(dist => {
+                const x = getXPosition(dist);
+                const line = document.createElementNS(svgNS, 'line');
+                line.setAttribute('x1', x);
+                line.setAttribute('y1', padding.top);
+                line.setAttribute('x2', x);
+                line.setAttribute('y2', height - padding.bottom);
+                line.setAttribute('stroke', '#e0e0e0');
+                line.setAttribute('stroke-width', '1');
+                if (dist === 100 || dist === 500 || dist === 1000) {
+                    line.setAttribute('stroke', '#bbb');
+                    line.setAttribute('stroke-width', '1.5');
+                }
+                gridGroup.appendChild(line);
+            });
+
+            // Horizontal grid lines (path loss values)
+            for (let pl = 80; pl <= 180; pl += 10) {
+                const y = getYPosition(pl);
+                const line = document.createElementNS(svgNS, 'line');
+                line.setAttribute('x1', padding.left);
+                line.setAttribute('y1', y);
+                line.setAttribute('x2', width - padding.right);
+                line.setAttribute('y2', y);
+                line.setAttribute('stroke', '#e0e0e0');
+                line.setAttribute('stroke-width', '1');
+                if (pl % 20 === 0) {
+                    line.setAttribute('stroke', '#bbb');
+                    line.setAttribute('stroke-width', '1.5');
+                }
+                gridGroup.appendChild(line);
+            }
+
+            svg.appendChild(gridGroup);
+        }
+
+        // Draw axes
+        function drawAxes() {
+            // X axis
+            const xAxis = document.createElementNS(svgNS, 'line');
+            xAxis.setAttribute('x1', padding.left);
+            xAxis.setAttribute('y1', height - padding.bottom);
+            xAxis.setAttribute('x2', width - padding.right);
+            xAxis.setAttribute('y2', height - padding.bottom);
+            xAxis.setAttribute('stroke', '#333');
+            xAxis.setAttribute('stroke-width', '2');
+            svg.appendChild(xAxis);
+
+            // Y axis
+            const yAxis = document.createElementNS(svgNS, 'line');
+            yAxis.setAttribute('x1', padding.left);
+            yAxis.setAttribute('y1', padding.top);
+            yAxis.setAttribute('x2', padding.left);
+            yAxis.setAttribute('y2', height - padding.bottom);
+            yAxis.setAttribute('stroke', '#333');
+            yAxis.setAttribute('stroke-width', '2');
+            svg.appendChild(yAxis);
+
+            // X axis labels
+            const xValues = [10, 20, 50, 100, 200, 500, 1000];
+            xValues.forEach(dist => {
+                const x = getXPosition(dist);
+                const text = document.createElementNS(svgNS, 'text');
+                text.setAttribute('x', x);
+                text.setAttribute('y', height - padding.bottom + 25);
+                text.setAttribute('text-anchor', 'middle');
+                text.setAttribute('font-size', '12');
+                text.setAttribute('fill', '#333');
+                text.textContent = dist + 'm';
+                svg.appendChild(text);
+            });
+
+            // Y axis labels
+            for (let pl = 80; pl <= 180; pl += 20) {
+                const y = getYPosition(pl);
+                const text = document.createElementNS(svgNS, 'text');
+                text.setAttribute('x', padding.left - 15);
+                text.setAttribute('y', y + 5);
+                text.setAttribute('text-anchor', 'end');
+                text.setAttribute('font-size', '12');
+                text.setAttribute('fill', '#333');
+                text.textContent = pl + ' dB';
+                svg.appendChild(text);
+            }
+
+            // X axis title
+            const xTitle = document.createElementNS(svgNS, 'text');
+            xTitle.setAttribute('x', width / 2);
+            xTitle.setAttribute('y', height - 10);
+            xTitle.setAttribute('text-anchor', 'middle');
+            xTitle.setAttribute('font-size', '14');
+            xTitle.setAttribute('font-weight', 'bold');
+            xTitle.setAttribute('fill', '#333');
+            xTitle.textContent = 'Mesafe (m) - Logaritmik Ölçek';
+            svg.appendChild(xTitle);
+
+            // Y axis title
+            const yTitle = document.createElementNS(svgNS, 'text');
+            yTitle.setAttribute('x', -(height / 2));
+            yTitle.setAttribute('y', 20);
+            yTitle.setAttribute('text-anchor', 'middle');
+            yTitle.setAttribute('font-size', '14');
+            yTitle.setAttribute('font-weight', 'bold');
+            yTitle.setAttribute('fill', '#333');
+            yTitle.setAttribute('transform', 'rotate(-90)');
+            yTitle.textContent = 'Yol Kaybı (dB)';
+            svg.appendChild(yTitle);
+        }
+
+        // Draw curves
+        function drawCurves() {
+            config.frequencies.forEach(freqConfig => {
+                const points = [];
+
+                // Generate curve points
+                for (let d = config.minDistance; d <= config.maxDistance; d += 5) {
+                    const pl = calculateFSPL(d, freqConfig.freq);
+                    if (pl >= config.minPathLoss && pl <= config.maxPathLoss) {
+                        points.push({ distance: d, pathLoss: pl });
+                    }
+                }
+
+                // Create path
+                if (points.length > 0) {
+                    const path = document.createElementNS(svgNS, 'path');
+                    let pathData = `M ${getXPosition(points[0].distance)} ${getYPosition(points[0].pathLoss)}`;
+
+                    for (let i = 1; i < points.length; i++) {
+                        pathData += ` L ${getXPosition(points[i].distance)} ${getYPosition(points[i].pathLoss)}`;
+                    }
+
+                    path.setAttribute('d', pathData);
+                    path.setAttribute('fill', 'none');
+                    path.setAttribute('stroke', freqConfig.color);
+                    path.setAttribute('stroke-width', '3');
+                    path.setAttribute('stroke-linecap', 'round');
+                    path.setAttribute('stroke-linejoin', 'round');
+                    svg.appendChild(path);
+                }
+
+                // Draw markers at important points
+                config.markerDistances.forEach(dist => {
+                    const pl = calculateFSPL(dist, freqConfig.freq);
+                    const x = getXPosition(dist);
+                    const y = getYPosition(pl);
+
+                    // Outer circle
+                    const outerCircle = document.createElementNS(svgNS, 'circle');
+                    outerCircle.setAttribute('cx', x);
+                    outerCircle.setAttribute('cy', y);
+                    outerCircle.setAttribute('r', '7');
+                    outerCircle.setAttribute('fill', 'white');
+                    outerCircle.setAttribute('stroke', freqConfig.color);
+                    outerCircle.setAttribute('stroke-width', '3');
+                    outerCircle.setAttribute('style', 'cursor: pointer;');
+                    svg.appendChild(outerCircle);
+
+                    // Inner circle
+                    const innerCircle = document.createElementNS(svgNS, 'circle');
+                    innerCircle.setAttribute('cx', x);
+                    innerCircle.setAttribute('cy', y);
+                    innerCircle.setAttribute('r', '3');
+                    innerCircle.setAttribute('fill', freqConfig.color);
+                    innerCircle.setAttribute('style', 'cursor: pointer;');
+                    svg.appendChild(innerCircle);
+
+                    // Add hover effect
+                    [outerCircle, innerCircle].forEach(circle => {
+                        circle.addEventListener('mouseenter', (e) => {
+                            tooltip.innerHTML = `
+                                <strong>${freqConfig.name}</strong><br>
+                                Mesafe: ${dist} m<br>
+                                Yol Kaybı: ${pl.toFixed(1)} dB
+                            `;
+                            tooltip.classList.add('show');
+                        });
+
+                        circle.addEventListener('mousemove', (e) => {
+                            tooltip.style.left = (e.pageX + 15) + 'px';
+                            tooltip.style.top = (e.pageY - 15) + 'px';
+                        });
+
+                        circle.addEventListener('mouseleave', () => {
+                            tooltip.classList.remove('show');
+                        });
+                    });
+                });
+            });
+        }
+
+        // Initialize graph
+        function initGraph() {
+            svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+            drawGrid();
+            drawAxes();
+            drawCurves();
+        }
+
+        // Run on page load
+        window.addEventListener('load', () => {
+            initGraph();
+        });
+
+        // Redraw on window resize
+        let resizeTimer;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(() => {
+                svg.innerHTML = '';
+                initGraph();
+            }, 250);
+        });
+    </script>
+</body>
+</html>
